@@ -60,18 +60,18 @@ Input images (JPG/PNG)
         │
         ▼
 ┌─────────────────────┐
-│  Marker Detection   │  ← marker.pt (YOLOv8)
+│  Marker Detection   │  ← marker.pt (YOLOv11)
 │  & Image Alignment  │
 └────────┬────────────┘
          │  Corrected & cropped document
          ▼
 ┌─────────────────────┐      ┌─────────────────────┐
-│  Info Zone Cropping │ ───► │  Info Recognition   │  ← info.pt (YOLOv8)
+│  Info Zone Cropping │ ───► │  Info Recognition   │  ← info.pt (YOLOv11)
 │  (Student/Exam ID)  │      │  (digits 0-9, blank)│
 └─────────────────────┘      └──────────┬──────────┘
                                         │
 ┌─────────────────────┐      ┌──────────▼──────────┐
-│  Answer Zone        │ ───► │  Answer Recognition │  ← answer.pt (YOLOv8)
+│  Answer Zone        │ ───► │  Answer Recognition │  ← answer.pt (YOLOv11)
 │  Column Cropping    │      │  (A/B/C/D combos)   │
 └─────────────────────┘      └──────────┬──────────┘
                                         │
@@ -138,7 +138,7 @@ pip install ultralytics numpy
 
 ### 4. Verify model files
 
-Ensure the three YOLOv8 model weight files are present in the `Model/` directory:
+Ensure the three YOLOv11 model weight files are present in the `Model/` directory:
 
 ```
 Model/
@@ -156,7 +156,7 @@ Model/
 ```
 paper-based-mcq-scoring/
 │
-├── Model/                          # Pre-trained YOLOv8 weights
+├── Model/                          # Pre-trained YOLOv11 weights
 │   ├── marker.pt
 │   ├── info.pt
 │   └── answer.pt
@@ -276,7 +276,7 @@ Each line contains: `<description>;<filename>;<confidence_score>`.
 
 ## Models
 
-The system uses three custom-trained **YOLOv8** object detection models:
+The system uses three custom-trained **YOLOv11** object detection models:
 
 | Model file  | Detects             | Classes                                                                                         |
 | ----------- | ------------------- | ----------------------------------------------------------------------------------------------- |
@@ -359,6 +359,6 @@ This software is based on the following peer-reviewed publication. If you use th
 For questions, issues, or contributions, please open a GitHub Issue or contact the authors:
 
 - **Pham Doan Tinh** — corresponding author
-- **Ta Quang Minh**
+- **Ta Quang Minh** - Email: taminh596@gmail.com - Phone: +84 979047751
 
 Paper available at: [https://thesai.org/Publications/ViewPaper?Volume=15&Issue=1&Code=IJACSA&SerialNo=115](https://thesai.org/Publications/ViewPaper?Volume=15&Issue=1&Code=IJACSA&SerialNo=115)

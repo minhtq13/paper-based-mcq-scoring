@@ -2,8 +2,8 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![OpenCV](https://img.shields.io/badge/OpenCV-4.9.0-green.svg)](https://opencv.org/)
-[![YOLOv11](https://img.shields.io/badge/YOLOv11-Ultralytics-red.svg)](https://ultralytics.com/)
+[![OpenCV](https://img.shields.io/badge/OpenCV-4.9.0-green.svg)]()
+[![YOLOv11](https://img.shields.io/badge/YOLOv11-Ultralytics-red.svg)](https://docs.ultralytics.com/vi/models/yolo11/)
 
 An automated optical scoring system for paper-based multiple-choice question (MCQ) answer sheets. The system uses computer vision and deep learning (YOLOv11) to detect alignment markers, extract student/exam information, and recognize selected answers from scanned or photographed answer sheet images — producing structured JSON output suitable for downstream grading pipelines.
 
@@ -12,6 +12,7 @@ An automated optical scoring system for paper-based multiple-choice question (MC
 ## Table of Contents
 
 - [Overview](#overview)
+- [Versioning](#versioning)
 - [Features](#features)
 - [System Architecture](#system-architecture)
 - [Requirements](#requirements)
@@ -38,6 +39,50 @@ This system automates the grading of paper-based MCQ exams. Given a folder of an
 5. **Logs potentially uncertain predictions** (low-confidence detections) to a warning file.
 
 The pipeline is designed for integration with an e-learning support platform but can also be used as a standalone batch-processing tool.
+
+---
+
+## Versioning
+
+This repository maintains **two branches** corresponding to two distinct implementations:
+
+| Branch                     | Detector | Model strategy                    | Description                                                   |
+| -------------------------- | -------- | --------------------------------- | ------------------------------------------------------------- |
+| `yolov8` _(paper version)_ | YOLOv8n  | Single shared model               | As described in the published paper (Tinh & Minh, 2024)       |
+| `main` _(this branch)_     | YOLOv11n | Three separate specialized models | Upgraded implementation with improved accuracy and modularity |
+
+### Differences from the Published Paper Version
+
+#### 1. Object Detector: YOLOv8 → YOLOv11
+
+The published paper used **YOLOv8** (released January 2023, Ultralytics). This branch upgrades to **YOLOv11** (released September 2024, Ultralytics), which introduces architectural refinements — particularly the **C3k2** block and **PSAA (Partial Self-Attention Aggregation)** mechanism — resulting in higher accuracy with fewer parameters.
+
+**Comparison of the nano (n) variants used in this project:**
+
+| Metric                             | YOLOv8n | YOLOv11n | Change      |
+| ---------------------------------- | ------- | -------- | ----------- |
+| Parameters                         | 3.2M    | 2.6M     | **−18.8%**  |
+| Inference speed (T4 TensorRT FP16) | 1.47 ms | 1.55 ms  | ~+5%        |
+| COCO mAP50-95                      | 37.3    | 39.5     | **+2.2 pp** |
+| Model size (`.pt`)                 | ~6.3 MB | ~5.4 MB  | **−14%**    |
+
+> Source: [Ultralytics YOLOv11 documentation](https://docs.ultralytics.com/models/yolo11/)
+
+In this domain-specific application (answer sheet detection), YOLOv11 achieves higher detection accuracy with a smaller model footprint, making it better suited for deployment.
+
+#### 2. Model Architecture: Single Model → Three Specialized Models
+
+The **paper version** (`yolov8` branch) uses a **single YOLOv8 model** trained on all detection tasks simultaneously (markers, student info digits, and answer bubbles). While this reduces the number of model files to maintain, it requires the model to generalize across visually very different object types.
+
+The **current version** (`main` branch) separates the detection into **three independent specialized models**, each trained exclusively on its own task:
+
+| Model       | Task                                  | Benefit of specialization                      |
+| ----------- | ------------------------------------- | ---------------------------------------------- |
+| `marker.pt` | Alignment marker detection            | Higher recall on small corner markers          |
+| `info.pt`   | Student information digit recognition | Better digit discrimination in dense grids     |
+| `answer.pt` | Answer bubble classification          | Improved accuracy on multi-choice combinations |
+
+This specialization allows each model to be fine-tuned independently and retrained without affecting the other tasks, improving both accuracy and maintainability.
 
 ---
 
@@ -276,15 +321,17 @@ Each line contains: `<description>;<filename>;<confidence_score>`.
 
 ## Models
 
-The system uses three custom-trained **YOLOv11** object detection models:
+This branch uses three custom-trained **YOLOv11** object detection models, one dedicated per task:
 
-| Model file  | Detects             | Classes                                                                                         |
-| ----------- | ------------------- | ----------------------------------------------------------------------------------------------- |
-| `marker.pt` | Alignment markers   | `marker1` (×3), `marker2` (×1)                                                                  |
-| `info.pt`   | Digits in info zone | `0`–`9`, `x` (blank/uncircled)                                                                  |
-| `answer.pt` | Answer bubbles      | `x`, `A`, `B`, `C`, `D`, `AB`, `AC`, `AD`, `BC`, `BD`, `CD`, `ABC`, `ABD`, `ACD`, `BCD`, `ABCD` |
+| Model file  | Task                         | Input region                    | Output classes                                                                                  |
+| ----------- | ---------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `marker.pt` | Alignment marker detection   | Full answer sheet image         | `marker1` (×3, at TL/TR/BL), `marker2` (×1, at BR)                                              |
+| `info.pt`   | Student info zone OCR        | Cropped info zone (640×640)     | `0`–`9`, `x` (uncircled/blank)                                                                  |
+| `answer.pt` | Answer bubble classification | Cropped answer column (250×640) | `x`, `A`, `B`, `C`, `D`, `AB`, `AC`, `AD`, `BC`, `BD`, `CD`, `ABC`, `ABD`, `ACD`, `BCD`, `ABCD` |
 
-All models are custom-trained **YOLOv11** detectors on a dataset of Vietnamese university exam answer sheets. The approach and training methodology are described in the paper referenced in the [Citation](#citation) section.
+All three models are based on the **YOLOv11n** (nano) architecture, trained on a custom dataset of Vietnamese university MCQ answer sheets.
+
+> For the original single-model implementation as described in the published paper, refer to the `yolov8` branch.
 
 ---
 

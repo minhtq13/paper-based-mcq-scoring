@@ -48,8 +48,8 @@ This repository maintains **two branches** corresponding to two distinct impleme
 
 | Branch                     | Detector | Model strategy                    | Description                                                   |
 | -------------------------- | -------- | --------------------------------- | ------------------------------------------------------------- |
-| `yolov8` _(paper version)_ | YOLOv8n  | Single shared model               | As described in the published paper (Tinh & Minh, 2024)       |
-| `main` _(this branch)_     | YOLOv11n | Three separate specialized models | Upgraded implementation with improved accuracy and modularity |
+| `yolov8` _(paper version)_ | yolov8m  | Single shared model               | As described in the published paper (Tinh & Minh, 2024)       |
+| `main` _(this branch)_     | YOLOv11m | Three separate specialized models | Upgraded implementation with improved accuracy and modularity |
 
 ### Differences from the Published Paper Version
 
@@ -59,7 +59,7 @@ The published paper used **YOLOv8** (released January 2023, Ultralytics). This b
 
 **Comparison of the nano (n) variants used in this project:**
 
-| Metric                             | YOLOv8n | YOLOv11n | Change      |
+| Metric                             | yolov8m | YOLOv11m | Change      |
 | ---------------------------------- | ------- | -------- | ----------- |
 | Parameters                         | 3.2M    | 2.6M     | **−18.8%**  |
 | Inference speed (T4 TensorRT FP16) | 1.47 ms | 1.55 ms  | ~+5%        |
@@ -329,7 +329,7 @@ This branch uses three custom-trained **YOLOv11** object detection models, one d
 | `info.pt`   | Student info zone OCR        | Cropped info zone (640×640)     | `0`–`9`, `x` (uncircled/blank)                                                                  |
 | `answer.pt` | Answer bubble classification | Cropped answer column (250×640) | `x`, `A`, `B`, `C`, `D`, `AB`, `AC`, `AD`, `BC`, `BD`, `CD`, `ABC`, `ABD`, `ACD`, `BCD`, `ABCD` |
 
-All three models are based on the **YOLOv11n** (nano) architecture, trained on a custom dataset of Vietnamese university MCQ answer sheets.
+All three models are based on the **YOLOv11m** (nano) architecture, trained on a custom dataset of Vietnamese university MCQ answer sheets.
 
 > For the original single-model implementation as described in the published paper, refer to the `yolov8` branch.
 

@@ -73,9 +73,9 @@ def get_class_marker(argument):
         return ""
 
 # Get string class from number class
-def get_class_answer(argument):
+def get_class(argument):
     if argument == 0:
-        return "x"
+        return ""
     elif argument == 1:
         return "A"
     elif argument == 2:
@@ -106,34 +106,6 @@ def get_class_answer(argument):
         return "BCD"
     elif argument == 15:
         return "ACBD"
-    else:
-        return "x"
-    
-
-    # Get string class from number class
-def get_class_info(argument):
-    if argument == 0:
-        return "0"
-    elif argument == 1:
-        return "1"
-    elif argument == 2:
-        return "2"
-    elif argument == 3:
-        return "3"
-    elif argument == 4:
-        return "4"
-    elif argument == 5:
-        return "5"
-    elif argument == 6:
-        return "6"
-    elif argument == 7:
-        return "7"
-    elif argument == 8:
-        return "8"
-    elif argument == 9:
-        return "9"
-    elif argument == 10:
-        return "x"
     elif argument == 16:
         return "0"
     elif argument == 17:
@@ -156,8 +128,12 @@ def get_class_info(argument):
         return "9"
     elif argument == 26:
         return "x"
+    elif argument == 27:
+        return "marker1"  
+    elif argument == 28:
+        return "marker2"  
     else:
-        return "x"
+        return ""
 
 
 

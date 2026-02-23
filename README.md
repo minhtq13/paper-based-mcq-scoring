@@ -57,14 +57,14 @@ This repository maintains **two branches** corresponding to two distinct impleme
 
 The published paper used **YOLOv8** (released January 2023, Ultralytics). This branch upgrades to **YOLOv11** (released September 2024, Ultralytics), which introduces architectural refinements — particularly the **C3k2** block and **PSAA (Partial Self-Attention Aggregation)** mechanism — resulting in higher accuracy with fewer parameters.
 
-**Comparison of the nano (n) variants used in this project:**
+**Comparison of the medium (m) variants used in this project:**
 
-| Metric                             | yolov8m | YOLOv11m | Change      |
+| Metric                             | YOLOv8m | YOLOv11m | Change      |
 | ---------------------------------- | ------- | -------- | ----------- |
-| Parameters                         | 3.2M    | 2.6M     | **−18.8%**  |
-| Inference speed (T4 TensorRT FP16) | 1.47 ms | 1.55 ms  | ~+5%        |
-| COCO mAP50-95                      | 37.3    | 39.5     | **+2.2 pp** |
-| Model size (`.pt`)                 | ~6.3 MB | ~5.4 MB  | **−14%**    |
+| Parameters                         | 25.9 M  | 20.1 M   | **−22.4%**  |
+| Inference speed (T4 TensorRT FP16) | 5.86 ms | 4.70 ms  | **−19.8%**  |
+| COCO mAP50-95                      | 50.2    | 51.5     | **+1.3 pp** |
+| FLOPs                              | 78.9 B  | 68.0 B   | **−13.8%**  |
 
 > Source: [Ultralytics YOLOv11 documentation](https://docs.ultralytics.com/models/yolo11/)
 
@@ -256,10 +256,10 @@ python main_algorithm.py <exam_class_id>
 **Example:**
 
 ```bash
-python main_algorithm.py 183152
+python main_algorithm.py demo1
 ```
 
-This will process all images inside `images/answer_sheets/183152/` and write results to the automatically created subdirectories.
+This will process all images inside `images/answer_sheets/demo1/` and write results to the automatically created subdirectories.
 
 ---
 
@@ -271,7 +271,7 @@ For each successfully processed answer sheet image (e.g., `1.jpg`), the system p
 
 ```json
 {
-  "examClassCode": "183152",
+  "examClassCode": "demo1",
   "studentCode": "026983557",
   "testSetCode": "014",
   "answers": [
@@ -281,8 +281,8 @@ For each successfully processed answer sheet image (e.g., `1.jpg`), the system p
     ...
     { "questionNo": 60, "selectedAnswers": "D" }
   ],
-  "handledScoredImg": "images/answer_sheets/183152/HandledSheets/handled_1.jpg",
-  "originalImg": "images/answer_sheets/183152/1.jpg",
+  "handledScoredImg": "images/answer_sheets/demo1/HandledSheets/handled_1.jpg",
+  "originalImg": "images/answer_sheets/demo1/1.jpg",
   "originalImgFileName": "1.jpg"
 }
 ```

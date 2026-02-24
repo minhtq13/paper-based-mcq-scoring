@@ -359,9 +359,9 @@ def orient_image_step_by_step(pts, marker_coordinates, marker2_position):
             marker1_points.append(pt)
     
     marker1_points = np.array(marker1_points, dtype="float32")
-    # print(f"    Remaining marker1 points: {len(marker1_points)} points")
+    # print(f"Remaining marker1 points: {len(marker1_points)} points")
     # for i, pt in enumerate(marker1_points):
-    #     print(f"    Marker1[{i}] = ({pt[0]:.2f}, {pt[1]:.2f})")
+    #     print(f"Marker1[{i}] = ({pt[0]:.2f}, {pt[1]:.2f})")
     
     # ===== Step 2: Find d1 - minimum distance from P3 to the 3 remaining points =====
     # print(f"\nStep 2: Find d1 - minimum distance from P3 to the 3 remaining points")
@@ -417,12 +417,23 @@ def orient_image_step_by_step(pts, marker_coordinates, marker2_position):
         # Ensure cos_alpha is within the range [-1, 1]
         cos_alpha_clipped = np.clip(cos_alpha, -1, 1)
         # if cos_alpha != cos_alpha_clipped:
-        #     print(f"    ⚠️  cos(alpha) adjusted from {cos_alpha:.4f} to {cos_alpha_clipped:.4f}")
+            # print(f"    ⚠️  cos(alpha) adjusted from {cos_alpha:.4f} to {cos_alpha_clipped:.4f}")
         
         alpha_radian = np.arccos(cos_alpha_clipped)
         alpha_degrees = np.degrees(alpha_radian)
         
-        # print(f"    alpha = cos⁻¹({cos_alpha_clipped:.4f}) = {alpha_radian:.4f} radian = {alpha_degrees:.2f}°")
+        # Determine rotation direction by comparing P4.y vs P4'.y
+        # In image coordinates (y increases downward):
+        #   P4 is ABOVE P4' (P4.y < P4'.y) → image tilted clockwise → correct counter-clockwise → positive angle
+        #   P4 is BELOW P4' (P4.y > P4'.y) → image tilted counter-clockwise → correct clockwise → negative angle
+        if P4[1] > P4_prime[1]:
+            alpha_degrees = -alpha_degrees
+            direction = "Clockwise (negative)"
+        else:
+            direction = "Counter-clockwise (positive)"
+        
+        print(f"    alpha = cos⁻¹({cos_alpha_clipped:.4f}) = {alpha_radian:.4f} radian = {alpha_degrees:.2f}°")
+        print(f"    P4.y={P4[1]:.2f} vs P4'.y={P4_prime[1]:.2f} → Direction: {direction}")
     else:
         # print("    ❌ Error: Denominator = 0, cannot calculate angle")
         alpha_degrees = 0
@@ -430,7 +441,7 @@ def orient_image_step_by_step(pts, marker_coordinates, marker2_position):
     # ===== Step 7: Prepare information for image rotation =====
     # print(f"\nStep 7: Information for image rotation")
     # print(f"    Rotation angle: {alpha_degrees:.2f}°")
-    # print(f"    Direction: {'Counter-clockwise' if alpha_degrees > 0 else 'Clockwise'}")
+    # print(f"    Direction: {'Counter-clockwise' if alpha_degrees > 0 else ('Clockwise' if alpha_degrees < 0 else 'No rotation')}")
     
     # Build rect with P3 fixed at bottom-right position
     remaining_points = []
@@ -497,8 +508,9 @@ def rotate_image_by_angle(image, angle_degrees, center=None):
         center = (width // 2, height // 2)
     
     # Create the rotation matrix
-    # Negative angle_degrees to rotate clockwise (commonly used for image correction)
-    rotation_matrix = cv2.getRotationMatrix2D(center, -angle_degrees, 1.0)
+    # In OpenCV: positive angle → counter-clockwise, negative angle → clockwise
+    # angle_degrees is signed, so direction is already encoded
+    rotation_matrix = cv2.getRotationMatrix2D(center, angle_degrees, 1.0)
     
     # Calculate the new image dimensions to avoid corner clipping
     cos_val = abs(rotation_matrix[0, 0])

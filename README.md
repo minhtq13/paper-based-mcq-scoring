@@ -81,7 +81,7 @@ Input image (JPG/PNG)
                                                 │
 ┌──────────────────────────┐      ┌─────────────▼──────────────┐
 │  Answer Column Crops     │ ───► │  Answer Recognition        │  ← best.pt
-│  3 columns at x=30,350,  │      │  (predictAnswer)           │  (classes: x, A–ABCD)
+│  3 columns at x=30,350,  │      │  (predictAnswer)           │  (classes: unchoice, A–ABCD)
 │  660; y=480; 350×896 px  │      │  → per-question answer     │
 │  → resize to 250 × 640   │      │     array                  │
 └──────────────────────────┘      └─────────────┬──────────────┘
@@ -107,15 +107,13 @@ Input image (JPG/PNG)
 - Python **3.8** or higher
 - The following Python packages (see also `requirements.txt`):
 
-| Package                  | Version  | Purpose                           |
-| ------------------------ | -------- | --------------------------------- |
-| `opencv-python-headless` | 4.9.0.80 | Image processing                  |
-| `ultralytics`            | ≥ 8.0    | YOLOv8 model inference            |
-| `numpy`                  | ≥ 1.21   | Numerical operations              |
-| `Flask`                  | latest   | (Optional) REST API serving       |
-| `uwsgi`                  | latest   | (Optional) Production WSGI server |
+| Package                  | Version  | Purpose                |
+| ------------------------ | -------- | ---------------------- |
+| `opencv-python-headless` | 4.9.0.80 | Image processing       |
+| `ultralytics`            | ≥ 8.0    | YOLOv8 model inference |
+| `numpy`                  | ≥ 1.21   | Numerical operations   |
 
-> **Note:** `Flask` and `uwsgi` are only required if you are deploying the system as a web service. For standalone batch processing, only `opencv-python-headless`, `ultralytics`, and `numpy` are needed.
+> **Note:** `Flask` and `uwsgi` are commented out in `requirements.txt`. They are only needed if you plan to deploy the system as a REST API web service.
 
 ---
 
@@ -287,7 +285,7 @@ This branch uses a **single unified YOLOv8 model** (`best.pt`) trained on all 29
 
 | Class index | Class label | Task             |
 | ----------- | ----------- | ---------------- |
-| 0           | _(blank)_   | Answer: no mark  |
+| 0           | `unchoice`  | Answer: no mark  |
 | 1           | `A`         | Answer bubble    |
 | 2           | `B`         | Answer bubble    |
 | 3           | `C`         | Answer bubble    |

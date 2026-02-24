@@ -58,6 +58,7 @@ def get_marker(image, model):
         #     raise Exception(error_message)
 
         marker_coordinates_true, alpha_degrees = orient_image_step_by_step(list_marker, marker_coordinates, marker2)
+        # print(marker_coordinates_true, alpha_degrees)
         rotated_image, rotation_matrix = rotate_image_by_angle(image, alpha_degrees)
     
         # imgResize_final = cv2.resize(rotated_image, (506, 800), interpolation=cv2.INTER_AREA)
@@ -77,8 +78,8 @@ def get_marker(image, model):
 
         # Crop the rotated image (rotated_image) using the new coordinates (rotated_corners)
         cropped_document = generate_output(rotated_image, rotated_corners)
-        cv2.imshow("Cropped Document", cropped_document)
-        cv2.waitKey(0)
+        # cv2.imshow("Cropped Document", cropped_document)
+        # cv2.waitKey(0)
         
         # Show the cropped image
         imgResize_cropped = cv2.resize(cropped_document, (506, 800), interpolation=cv2.INTER_AREA)

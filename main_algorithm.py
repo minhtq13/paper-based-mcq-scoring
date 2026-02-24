@@ -80,8 +80,8 @@ def get_marker(image, model):
         
         # Show the cropped image
         imgResize_cropped = cv2.resize(cropped_document, (506, 800), interpolation=cv2.INTER_AREA)
-        # cv2.imshow("Cropped Document", imgResize_cropped)
-        # cv2.waitKey(0)
+        cv2.imshow("Cropped Document", imgResize_cropped)
+        cv2.waitKey(0)
 
         
         # Show the final image

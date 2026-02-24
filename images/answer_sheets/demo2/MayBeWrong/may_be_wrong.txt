@@ -1,0 +1,3 @@
+Label "x" question 5;t3.jpg;0.627
+Label "x" question 46;t3.jpg;0.646
+Label "x" question 50;t3.jpg;0.766

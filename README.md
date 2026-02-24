@@ -323,11 +323,11 @@ Each line contains: `<description>;<filename>;<confidence_score>`.
 
 This branch uses three custom-trained **YOLOv11** object detection models, one dedicated per task:
 
-| Model file  | Task                         | Input region                    | Output classes                                                                                  |
-| ----------- | ---------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `marker.pt` | Alignment marker detection   | Full answer sheet image         | `marker1` (×3, at TL/TR/BL), `marker2` (×1, at BR)                                              |
-| `info.pt`   | Student info zone OCR        | Cropped info zone (640×640)     | `0`–`9`, `x` (uncircled/blank)                                                                  |
-| `answer.pt` | Answer bubble classification | Cropped answer column (250×640) | `x`, `A`, `B`, `C`, `D`, `AB`, `AC`, `AD`, `BC`, `BD`, `CD`, `ABC`, `ABD`, `ACD`, `BCD`, `ABCD` |
+| Model file  | Task                         | Input region                    | Output classes                                                                                         |
+| ----------- | ---------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `marker.pt` | Alignment marker detection   | Full answer sheet image         | `marker1` (×3, at TL/TR/BL), `marker2` (×1, at BR)                                                     |
+| `info.pt`   | Student info zone OCR        | Cropped info zone (640×640)     | `0`–`9`, `x` (uncircled/blank)                                                                         |
+| `answer.pt` | Answer bubble classification | Cropped answer column (250×640) | `unchoice`, `A`, `B`, `C`, `D`, `AB`, `AC`, `AD`, `BC`, `BD`, `CD`, `ABC`, `ABD`, `ACD`, `BCD`, `ABCD` |
 
 All three models are based on the **YOLOv11m** (nano) architecture, trained on a custom dataset of Vietnamese university MCQ answer sheets.
 

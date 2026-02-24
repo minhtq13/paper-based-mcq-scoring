@@ -456,8 +456,8 @@ def orient_image_step_by_step(pts, marker_coordinates, marker2_position):
         else:
             direction = "Counter-clockwise (positive)"
         
-        print(f"    alpha = cos⁻¹({cos_alpha_clipped:.4f}) = {alpha_radian:.4f} radian = {alpha_degrees:.2f}°")
-        print(f"    P4.y={P4[1]:.2f} vs P4'.y={P4_prime[1]:.2f} → Direction: {direction}")
+        # print(f"    alpha = cos⁻¹({cos_alpha_clipped:.4f}) = {alpha_radian:.4f} radian = {alpha_degrees:.2f}°")
+        # print(f"    P4.y={P4[1]:.2f} vs P4'.y={P4_prime[1]:.2f} → Direction: {direction}")
     else:
         # print("    ❌ Error: Denominator = 0, cannot calculate angle")
         alpha_degrees = 0

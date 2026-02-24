@@ -4,6 +4,7 @@ import numpy as np
 from ultralytics import YOLO
 import argparse
 import json
+import shutil
 from tool_algorithm import orient_image_step_by_step, generate_output, get_parameter_number_anwser, remove_elements_info, remove_elements_answer, remove_elements_marker
 from tool_algorithm import get_class_answer, get_class_info, get_coordinates, get_coordinates_info, get_remainder, orient_image_by_angle, get_class_marker
 from tool_algorithm import warning_color, green_color, blue_color, threshold_warning
@@ -80,8 +81,8 @@ def get_marker(image, model):
         
         # Show the cropped image
         imgResize_cropped = cv2.resize(cropped_document, (506, 800), interpolation=cv2.INTER_AREA)
-        cv2.imshow("Cropped Document", imgResize_cropped)
-        cv2.waitKey(0)
+        # cv2.imshow("Cropped Document", imgResize_cropped)
+        # cv2.waitKey(0)
 
         
         # Show the final image
@@ -203,6 +204,8 @@ if __name__ == "__main__":
     folder_path_handle = f"images/answer_sheets/{args.input}/HandledSheets"
     folder_scored_path = f"images/answer_sheets/{args.input}/ScoredSheets"
     folder_maybe_wrong = f"images/answer_sheets/{args.input}/MayBeWrong"
+    if os.path.exists(folder_maybe_wrong):
+        shutil.rmtree(folder_maybe_wrong)
     if not os.path.exists(folder_path):
         try:
             os.makedirs(folder_path)

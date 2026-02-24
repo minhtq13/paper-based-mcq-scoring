@@ -4,6 +4,7 @@ import numpy as np
 from ultralytics import YOLO
 import argparse
 import json
+import shutil
 from tool_algorithm import orient_image_step_by_step, generate_output, get_parameter_number_anwser, remove_elements_info, remove_elements_answer, remove_elements_marker
 from tool_algorithm import get_class, get_coordinates, get_coordinates_info, get_remainder, orient_image_by_angle, get_class
 from tool_algorithm import warning_color, green_color, blue_color, threshold_warning
@@ -206,6 +207,8 @@ if __name__ == "__main__":
     folder_path_handle = f"images/answer_sheets/{args.input}/HandledSheets"
     folder_scored_path = f"images/answer_sheets/{args.input}/ScoredSheets"
     folder_maybe_wrong = f"images/answer_sheets/{args.input}/MayBeWrong"
+    if os.path.exists(folder_maybe_wrong):
+        shutil.rmtree(folder_maybe_wrong)
     if not os.path.exists(folder_path):
         try:
             os.makedirs(folder_path)

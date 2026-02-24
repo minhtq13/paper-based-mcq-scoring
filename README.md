@@ -20,6 +20,7 @@ An automated optical scoring system for paper-based multiple-choice question (MC
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Directory Structure](#directory-structure)
+- [Answer Sheet Template](#answer-sheet-template)
 - [Usage](#usage)
   - [Preparing Input Images](#preparing-input-images)
   - [Running the Scoring Pipeline](#running-the-scoring-pipeline)
@@ -179,9 +180,83 @@ paper-based-mcq-scoring/
 ├── main_algorithm.py                   # Main scoring pipeline
 ├── tool_algorithm.py                   # Geometry & label utility functions
 ├── common_main.py                      # Image crop & merge helpers
+├── AnswerSheetTemplateNew.pdf          # Printable answer sheet template
 ├── requirements.txt
 └── README.md
 ```
+
+---
+
+## Answer Sheet Template
+
+The file `AnswerSheetTemplateNew.pdf` is the official printable template that this system is designed to process. Print it on **A4 paper** before scanning or photographing.
+
+### Layout Overview
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ [■] TL marker          PHIẾU TRẢ LỜI TRẮC NGHIỆM          [■] TR│  ← marker1 (×3)
+│                                                                  │
+│  ┌─────────────────┐  ┌──────────────────────────────────────┐  │
+│  │ Supervisor sign │  │  1. Môn thi  (subject)               │  │
+│  │ box 1 & 2       │  │  2. Họ và tên (full name)            │  │
+│  └─────────────────┘  │  3. Ngày thi (exam date)             │  │
+│                       │  4. Chữ ký   (signature)             │  │
+│                       └──────────────────────────────────────┘  │
+│                                                                  │
+│  5. Mã lớp thi   6. Mã SV (SBD)          7. Mã đề             │
+│  ┌──────────┐    ┌──────────────────┐     ┌─────┐              │
+│  │6-col OMR │    │9-col OMR (0–9,x) │     │3-col│  ← info zone │
+│  └──────────┘    └──────────────────┘     └─────┘              │
+│                                                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ║ barcode ║│
+│  │ Q1–Q20      │  │ Q21–Q40     │  │ Q41–Q60     │  ║  strip  ║│
+│  │ (A B C D)   │  │ (A B C D)   │  │ (A B C D)   │  ║         ║│
+│  └─────────────┘  └─────────────┘  └─────────────┘  ║         ║│
+│                                                                  │
+│ [■] BL marker                                          [⊙] BR   │  ← marker2 (×1)
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Marker Positions
+
+| Marker    | Position     | Symbol              | Role                                            |
+| --------- | ------------ | ------------------- | ----------------------------------------------- |
+| `marker1` | Top-Left     | `■` (filled square) | Alignment — 3 copies                            |
+| `marker1` | Top-Right    | `■` (filled square) | Alignment                                       |
+| `marker1` | Bottom-Left  | `■` (filled square) | Alignment                                       |
+| `marker2` | Bottom-Right | `⊙` (circle-dot)    | Reference corner for rotation angle calculation |
+
+The asymmetric placement of `marker2` at bottom-right allows the algorithm to unambiguously determine the sheet's orientation and calculate the exact skew angle.
+
+### Information Zone (Fields 5, 6, 7)
+
+Located in the upper-right area. Each field is an OMR (Optical Mark Recognition) column grid where students fill in digit bubbles `0`–`9` column by column:
+
+| Field | Label       | Columns | Content                  |
+| ----- | ----------- | ------- | ------------------------ |
+| 5     | Mã lớp thi  | 6       | Exam class/course code   |
+| 6     | Mã SV (SBD) | 9       | Student ID number        |
+| 7     | Mã đề       | 3       | Exam set / test-set code |
+
+A blank or uncircled cell is treated as class `x`.
+
+### Answer Zone (Fields Q1–Q60)
+
+- **3 vertical columns** of questions, each holding up to **20 questions**
+- Each row offers **4 bubbles**: `A`, `B`, `C`, `D`
+- Students may fill **one or more bubbles** per question (multi-answer support: `AB`, `ACD`, `ABCD`, etc.)
+- A question with no bubble filled is recorded as `unchoice` (unanswered)
+
+### Barcode Strip
+
+A vertical barcode strip on the right edge is a printed identifier for the exam sheet (not processed by this software).
+
+### Printing Notes
+
+- Print at **100% scale** on **A4 (210 × 297 mm)** — do **not** scale to fit
+- Use a **laser printer** for best marker contrast
+- Ensure all 4 alignment markers are fully printed and not clipped by the page margin
 
 ---
 
@@ -216,10 +291,10 @@ python main_algorithm.py <exam_class_id>
 **Example:**
 
 ```bash
-python main_algorithm.py 183152
+python main_algorithm.py demo2
 ```
 
-This will process all images inside `images/answer_sheets/183152/` and write results to the automatically created subdirectories.
+This will process all images inside `images/answer_sheets/demo2/` and write results to the automatically created subdirectories.
 
 ---
 
@@ -231,7 +306,7 @@ For each successfully processed answer sheet image (e.g., `1.jpg`), the system p
 
 ```json
 {
-  "examClassCode": "183152",
+  "examClassCode": "demo2",
   "studentCode": "026983557",
   "testSetCode": "014",
   "answers": [
@@ -241,8 +316,8 @@ For each successfully processed answer sheet image (e.g., `1.jpg`), the system p
     ...
     { "questionNo": 60, "selectedAnswers": "D" }
   ],
-  "handledScoredImg": "images/answer_sheets/183152/HandledSheets/handled_1.jpg",
-  "originalImg": "images/answer_sheets/183152/1.jpg",
+  "handledScoredImg": "images/answer_sheets/demo2/HandledSheets/handled_1.jpg",
+  "originalImg": "images/answer_sheets/demo2/1.jpg",
   "originalImgFileName": "1.jpg"
 }
 ```

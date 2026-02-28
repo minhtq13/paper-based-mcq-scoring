@@ -1,9 +1,9 @@
 """
-grading.py — Grade scored MCQ answer sheets against an answer key file
-=======================================================================
+grade_from_key.py — Grade scored MCQ answer sheets against an answer key file
+=============================================================================
 Reads:
   1. answer_key.json   — correct answers per exam set code (mã đề thi)
-  2. ScoredSheets/     — JSON files output by main_algorithm.py
+  2. ScoredSheets/     — JSON files output by scoring.py
 
 Outputs:
   - Console: per-student score table grouped by class
@@ -11,7 +11,7 @@ Outputs:
 
 Usage
 ─────
-  python3 grading.py \\
+  python3 grade_from_key.py \\
       --scored   images/answer_sheets/demo2/ScoredSheets \\
       --key      answer_key.json \\
       --out      grading_report.json
@@ -23,18 +23,16 @@ Answer key format  (answer_key.json)
     "subject":         "Introduction to Computer Science",
     "total_questions": 60,
     "total_score":     10.0,
-    "scoring_rule":    "correct_only",   // "correct_only" | "partial"
     "keys": {
       "423": ["ABC", "ACD", "ABCD", ...],   // 60 answers for exam set 423
       "915": ["A",   "B",   "C",    ...]    // 60 answers for exam set 915
     }
   }
 
-Scoring rules
-─────────────
-  correct_only : full mark for exact match, 0 otherwise  (default)
-  partial      : score = (letters in common / letters in key) × mark_per_q
-                 e.g. key="ABD", student="AB" → 2/3 partial credit
+Scoring rule
+────────────
+  Exact match → full mark per question.
+  Any other answer (wrong, incomplete, or unanswered) → 0 points.
 """
 
 import os
@@ -57,27 +55,17 @@ def _norm(s: str) -> str:
 
 
 def _score_question(student_ans: str, key_ans: str,
-                    mark: float, rule: str) -> tuple[float, str]:
+                    mark: float) -> tuple[float, str]:
     """
     Returns (points_earned, verdict).
-    verdict: 'correct' | 'incorrect' | 'partial' | 'unanswered'
+    verdict: 'correct' | 'incorrect'
+    Rule: exact match only → full mark. Everything else (wrong, blank) → 0.
     """
     s = _norm(student_ans)
     k = _norm(key_ans)
 
-    if s == "X" and k == "X":
-        return mark, "correct"     # both blank = correct
-
-    if s == "X":
-        return 0.0, "unanswered"
-
-    if s == k:
+    if s == k:           # covers both-blank (X==X) and normal exact match
         return mark, "correct"
-
-    if rule == "partial" and k != "X":
-        common = set(s) & set(k)
-        earned = mark * len(common) / len(k)
-        return round(earned, 4), "partial"
 
     return 0.0, "incorrect"
 
@@ -119,7 +107,6 @@ def grade_sheet(sheet: dict, key_cfg: dict) -> dict:
 
     total_q   = key_cfg["total_questions"]
     total_pts = key_cfg["total_score"]
-    rule      = key_cfg.get("scoring_rule", "correct_only")
     mark_per_q = total_pts / total_q
 
     # Look up key for this exam set
@@ -141,46 +128,42 @@ def grade_sheet(sheet: dict, key_cfg: dict) -> dict:
                        for a in sheet.get("answers", [])}
 
     details = []
-    total_earned  = 0.0
-    n_correct     = 0
-    n_incorrect   = 0
-    n_partial     = 0
-    n_unanswered  = 0
+    total_earned = 0.0
+    n_correct    = 0
+    n_incorrect  = 0
 
     for q_no in range(1, total_q + 1):
         key_ans     = correct_answers[q_no - 1] if q_no - 1 < len(correct_answers) else "x"
         student_ans = student_answers.get(q_no, "")
 
-        earned, verdict = _score_question(student_ans, key_ans, mark_per_q, rule)
+        earned, verdict = _score_question(student_ans, key_ans, mark_per_q)
         total_earned += earned
 
-        if verdict == "correct":   n_correct    += 1
-        elif verdict == "partial": n_partial    += 1
-        elif verdict == "incorrect": n_incorrect += 1
-        else:                      n_unanswered += 1
+        if verdict == "correct":
+            n_correct   += 1
+        else:
+            n_incorrect += 1
 
         details.append({
-            "questionNo":   q_no,
-            "student_ans":  _norm(student_ans) if student_ans else "x",
-            "key_ans":      _norm(key_ans),
-            "earned":       round(earned, 4),
-            "verdict":      verdict,
+            "questionNo":  q_no,
+            "student_ans": _norm(student_ans) if student_ans else "x",
+            "key_ans":     _norm(key_ans),
+            "earned":      round(earned, 4),
+            "verdict":     verdict,
         })
 
     score = round(min(total_earned, total_pts), 2)
 
     return {
-        "student_code":  student_code,
-        "class_code":    class_code,
-        "exam_code":     exam_code,
-        "score":         score,
-        "total_score":   total_pts,
-        "n_correct":     n_correct,
-        "n_incorrect":   n_incorrect,
-        "n_partial":     n_partial,
-        "n_unanswered":  n_unanswered,
-        "source_file":   sheet.get("_source_file", ""),
-        "detail":        details,
+        "student_code": student_code,
+        "class_code":   class_code,
+        "exam_code":    exam_code,
+        "score":        score,
+        "total_score":  total_pts,
+        "n_correct":    n_correct,
+        "n_incorrect":  n_incorrect,
+        "source_file":  sheet.get("_source_file", ""),
+        "detail":       details,
     }
 
 
@@ -192,8 +175,6 @@ def print_report(results: list[dict], key_cfg: dict):
     exam_name = key_cfg.get("exam_name", "")
     subject   = key_cfg.get("subject", "")
     total_pts = key_cfg.get("total_score", 10)
-    rule      = key_cfg.get("scoring_rule", "correct_only")
-
     W   = 72
     SEP = "─" * W
 
@@ -205,7 +186,7 @@ def print_report(results: list[dict], key_cfg: dict):
         print(f"  Exam    : {exam_name}")
     if subject:
         print(f"  Subject : {subject}")
-    print(f"  Scoring : {rule}  |  Total score = {total_pts}")
+    print(f"  Scoring : exact match only  |  Total score = {total_pts}")
     print(SEP)
 
     # Group by class
@@ -216,7 +197,7 @@ def print_report(results: list[dict], key_cfg: dict):
     for class_code, students in sorted(by_class.items()):
         print(f"\n  Class: {class_code}  ({len(students)} student(s))")
         print(f"  {'Student Code':<16} {'Exam Set':<10} {'Score':>8}  "
-              f"{'Correct':>8} {'Incorrect':>10} {'Unanswered':>12}")
+              f"{'Correct':>8} {'Incorrect':>10}")
         print("  " + "·" * (W - 2))
 
         scores = []
@@ -225,11 +206,9 @@ def print_report(results: list[dict], key_cfg: dict):
                 print(f"  {r['student_code']:<16} {r['exam_code']:<10}  "
                       f"⚠  {r['error']}")
                 continue
-            partial_note = f" (+{r['n_partial']} partial)" if r["n_partial"] else ""
             print(f"  {r['student_code']:<16} {r['exam_code']:<10} "
                   f"{r['score']:>7.2f}  "
-                  f"{r['n_correct']:>8} {r['n_incorrect']:>10} "
-                  f"{r['n_unanswered']:>12}{partial_note}")
+                  f"{r['n_correct']:>8} {r['n_incorrect']:>10}")
             scores.append(r["score"])
 
         if scores:
@@ -297,7 +276,7 @@ def main():
     report = {
         "exam_name":    key_cfg.get("exam_name", ""),
         "subject":      key_cfg.get("subject", ""),
-        "scoring_rule": key_cfg.get("scoring_rule", "correct_only"),
+        "scoring_rule": "exact_match_only",
         "total_score":  key_cfg.get("total_score", 10),
         "results":      results,
     }

@@ -18,7 +18,7 @@ from utils import (
 
 # ============================================ HANDLE MARKER =======================================
 
-def get_marker(image, model):
+def get_marker(image, model, folder_maybe_wrong):
     maybe_wrong_marker = []  # Initialize variable
     try:
         results = model.predict(image)
@@ -54,13 +54,13 @@ def get_marker(image, model):
                     blue_color if conf > threshold_warning else warning_color, 1,cv2.LINE_AA)
      
         # Handle errors
-        # if count_marker2 != 1 or count_maker1 != 3:
-        #     error_message = f"Image {filename} could not detect enough markers or may be missing corners"
-        #     maybe_wrong_marker.append(error_message)
-        #     # with open(f"{SHARED_DATA_DIR}/AnsweredSheets/{folder_code}/MayBeWrong/error.txt", "w", encoding="utf-8") as f:
-        #     #     for string in maybe_wrong_marker:
-        #     #         f.write(string + "\n")
-        #     raise Exception(error_message)
+        if count_marker2 != 1 or count_maker1 != 3:
+            error_message = f"Image {filename} could not detect enough markers or may be missing corners"
+            maybe_wrong_marker.append(error_message)
+            with open(f"{folder_maybe_wrong}/maybe_wrong.txt", "w", encoding="utf-8") as f:
+                for string in maybe_wrong_marker:
+                    f.write(string + "\n")
+            raise Exception(error_message)
 
         marker_coordinates_true, alpha_degrees = orient_image_step_by_step(list_marker, marker_coordinates, marker2)
         # print(marker_coordinates_true, alpha_degrees)
@@ -235,7 +235,7 @@ if __name__ == "__main__":
         if filename.lower().endswith((".jpg", ".jpeg", ".png")):
             image_path = os.path.join(folder_path, filename)
             image = cv2.imread(image_path)
-            document, maybe_wrong_marker = get_marker(image, model_marker)
+            document, maybe_wrong_marker = get_marker(image, model_marker, folder_maybe_wrong)
             if (document is None):
                 continue
             
@@ -294,7 +294,7 @@ if __name__ == "__main__":
         # ========================================= Measure execution time ==========================
         # print("Execution time: ", time.time() - start_time, " seconds")
     if len(maybe_wrong_info) > 0 or len(maybe_wrong_answer_array) > 0 or len(maybe_wrong_marker) > 0:
-        with open(f"{folder_maybe_wrong}/may_be_wrong.txt", "w", encoding="utf-8") as f:
+        with open(f"{folder_maybe_wrong}/maybe_wrong.txt", "w", encoding="utf-8") as f:
             if len(maybe_wrong_marker) > 0:
                 for string in maybe_wrong_marker:
                     f.write(string + "\n")

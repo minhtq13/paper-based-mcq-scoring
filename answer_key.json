@@ -3,10 +3,9 @@
   "subject": "Introduction to Computer Science",
   "total_questions": 60,
   "total_score": 10.0,
-  "scoring_rule": "correct_only",
   "keys": {
     "423": [
-      "ABC",
+      "AB",
       "ACD",
       "ABCD",
       "ABCD",

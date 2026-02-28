@@ -1,27 +1,25 @@
 {
   "exam_name": "Midterm Examination",
   "subject": "Introduction to Computer Science",
-  "scoring_rule": "correct_only",
+  "scoring_rule": "exact_match_only",
   "total_score": 10.0,
   "results": [
     {
       "student_code": "20193046",
       "class_code": "247103",
       "exam_code": "423",
-      "score": 9.83,
+      "score": 9.67,
       "total_score": 10.0,
-      "n_correct": 59,
-      "n_incorrect": 1,
-      "n_partial": 0,
-      "n_unanswered": 0,
+      "n_correct": 58,
+      "n_incorrect": 2,
       "source_file": "t10_data.json",
       "detail": [
         {
           "questionNo": 1,
           "student_ans": "ABC",
-          "key_ans": "ABC",
-          "earned": 0.1667,
-          "verdict": "correct"
+          "key_ans": "AB",
+          "earned": 0.0,
+          "verdict": "incorrect"
         },
         {
           "questionNo": 2,
@@ -442,20 +440,18 @@
       "student_code": "20193046",
       "class_code": "247103",
       "exam_code": "423",
-      "score": 9.83,
+      "score": 9.67,
       "total_score": 10.0,
-      "n_correct": 59,
-      "n_incorrect": 1,
-      "n_partial": 0,
-      "n_unanswered": 0,
+      "n_correct": 58,
+      "n_incorrect": 2,
       "source_file": "t1_data.json",
       "detail": [
         {
           "questionNo": 1,
           "student_ans": "ABC",
-          "key_ans": "ABC",
-          "earned": 0.1667,
-          "verdict": "correct"
+          "key_ans": "AB",
+          "earned": 0.0,
+          "verdict": "incorrect"
         },
         {
           "questionNo": 2,
@@ -876,20 +872,18 @@
       "student_code": "20193046",
       "class_code": "247103",
       "exam_code": "423",
-      "score": 9.83,
+      "score": 9.67,
       "total_score": 10.0,
-      "n_correct": 59,
-      "n_incorrect": 1,
-      "n_partial": 0,
-      "n_unanswered": 0,
+      "n_correct": 58,
+      "n_incorrect": 2,
       "source_file": "t2_data.json",
       "detail": [
         {
           "questionNo": 1,
           "student_ans": "ABC",
-          "key_ans": "ABC",
-          "earned": 0.1667,
-          "verdict": "correct"
+          "key_ans": "AB",
+          "earned": 0.0,
+          "verdict": "incorrect"
         },
         {
           "questionNo": 2,
@@ -1313,9 +1307,7 @@
       "score": 0.5,
       "total_score": 10.0,
       "n_correct": 3,
-      "n_incorrect": 27,
-      "n_partial": 0,
-      "n_unanswered": 30,
+      "n_incorrect": 57,
       "source_file": "t3_data.json",
       "detail": [
         {
@@ -1533,210 +1525,210 @@
           "student_ans": "x",
           "key_ans": "CD",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 32,
           "student_ans": "x",
           "key_ans": "A",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 33,
           "student_ans": "x",
           "key_ans": "B",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 34,
           "student_ans": "x",
           "key_ans": "C",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 35,
           "student_ans": "x",
           "key_ans": "D",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 36,
           "student_ans": "x",
           "key_ans": "AB",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 37,
           "student_ans": "x",
           "key_ans": "AC",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 38,
           "student_ans": "x",
           "key_ans": "AD",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 39,
           "student_ans": "x",
           "key_ans": "BC",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 40,
           "student_ans": "x",
           "key_ans": "BD",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 41,
           "student_ans": "x",
           "key_ans": "CD",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 42,
           "student_ans": "x",
           "key_ans": "A",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 43,
           "student_ans": "x",
           "key_ans": "B",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 44,
           "student_ans": "x",
           "key_ans": "C",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 45,
           "student_ans": "x",
           "key_ans": "D",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 46,
           "student_ans": "x",
           "key_ans": "AB",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 47,
           "student_ans": "x",
           "key_ans": "AC",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 48,
           "student_ans": "x",
           "key_ans": "AD",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 49,
           "student_ans": "x",
           "key_ans": "BC",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 50,
           "student_ans": "x",
           "key_ans": "BD",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 51,
           "student_ans": "x",
           "key_ans": "CD",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 52,
           "student_ans": "x",
           "key_ans": "A",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 53,
           "student_ans": "x",
           "key_ans": "B",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 54,
           "student_ans": "x",
           "key_ans": "C",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 55,
           "student_ans": "x",
           "key_ans": "D",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 56,
           "student_ans": "x",
           "key_ans": "AB",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 57,
           "student_ans": "x",
           "key_ans": "AC",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 58,
           "student_ans": "x",
           "key_ans": "AD",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 59,
           "student_ans": "x",
           "key_ans": "BC",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         },
         {
           "questionNo": 60,
           "student_ans": "x",
           "key_ans": "BD",
           "earned": 0.0,
-          "verdict": "unanswered"
+          "verdict": "incorrect"
         }
       ]
     },
@@ -1744,20 +1736,18 @@
       "student_code": "20193046",
       "class_code": "247103",
       "exam_code": "423",
-      "score": 9.83,
+      "score": 9.67,
       "total_score": 10.0,
-      "n_correct": 59,
-      "n_incorrect": 1,
-      "n_partial": 0,
-      "n_unanswered": 0,
+      "n_correct": 58,
+      "n_incorrect": 2,
       "source_file": "t4_data.json",
       "detail": [
         {
           "questionNo": 1,
           "student_ans": "ABC",
-          "key_ans": "ABC",
-          "earned": 0.1667,
-          "verdict": "correct"
+          "key_ans": "AB",
+          "earned": 0.0,
+          "verdict": "incorrect"
         },
         {
           "questionNo": 2,
@@ -2178,20 +2168,18 @@
       "student_code": "20193046",
       "class_code": "247103",
       "exam_code": "423",
-      "score": 9.83,
+      "score": 9.67,
       "total_score": 10.0,
-      "n_correct": 59,
-      "n_incorrect": 1,
-      "n_partial": 0,
-      "n_unanswered": 0,
+      "n_correct": 58,
+      "n_incorrect": 2,
       "source_file": "t5_data.json",
       "detail": [
         {
           "questionNo": 1,
           "student_ans": "ABC",
-          "key_ans": "ABC",
-          "earned": 0.1667,
-          "verdict": "correct"
+          "key_ans": "AB",
+          "earned": 0.0,
+          "verdict": "incorrect"
         },
         {
           "questionNo": 2,
@@ -2612,20 +2600,18 @@
       "student_code": "20193046",
       "class_code": "247103",
       "exam_code": "423",
-      "score": 9.83,
+      "score": 9.67,
       "total_score": 10.0,
-      "n_correct": 59,
-      "n_incorrect": 1,
-      "n_partial": 0,
-      "n_unanswered": 0,
+      "n_correct": 58,
+      "n_incorrect": 2,
       "source_file": "t6_data.json",
       "detail": [
         {
           "questionNo": 1,
           "student_ans": "ABC",
-          "key_ans": "ABC",
-          "earned": 0.1667,
-          "verdict": "correct"
+          "key_ans": "AB",
+          "earned": 0.0,
+          "verdict": "incorrect"
         },
         {
           "questionNo": 2,
@@ -3046,20 +3032,18 @@
       "student_code": "20193046",
       "class_code": "247103",
       "exam_code": "423",
-      "score": 9.83,
+      "score": 9.67,
       "total_score": 10.0,
-      "n_correct": 59,
-      "n_incorrect": 1,
-      "n_partial": 0,
-      "n_unanswered": 0,
+      "n_correct": 58,
+      "n_incorrect": 2,
       "source_file": "t7_data.json",
       "detail": [
         {
           "questionNo": 1,
           "student_ans": "ABC",
-          "key_ans": "ABC",
-          "earned": 0.1667,
-          "verdict": "correct"
+          "key_ans": "AB",
+          "earned": 0.0,
+          "verdict": "incorrect"
         },
         {
           "questionNo": 2,
@@ -3480,20 +3464,18 @@
       "student_code": "20193046",
       "class_code": "247103",
       "exam_code": "423",
-      "score": 9.83,
+      "score": 9.67,
       "total_score": 10.0,
-      "n_correct": 59,
-      "n_incorrect": 1,
-      "n_partial": 0,
-      "n_unanswered": 0,
+      "n_correct": 58,
+      "n_incorrect": 2,
       "source_file": "t8_data.json",
       "detail": [
         {
           "questionNo": 1,
           "student_ans": "ABC",
-          "key_ans": "ABC",
-          "earned": 0.1667,
-          "verdict": "correct"
+          "key_ans": "AB",
+          "earned": 0.0,
+          "verdict": "incorrect"
         },
         {
           "questionNo": 2,
@@ -3914,20 +3896,18 @@
       "student_code": "20193046",
       "class_code": "247103",
       "exam_code": "423",
-      "score": 9.83,
+      "score": 9.67,
       "total_score": 10.0,
-      "n_correct": 59,
-      "n_incorrect": 1,
-      "n_partial": 0,
-      "n_unanswered": 0,
+      "n_correct": 58,
+      "n_incorrect": 2,
       "source_file": "t9_data.json",
       "detail": [
         {
           "questionNo": 1,
           "student_ans": "ABC",
-          "key_ans": "ABC",
-          "earned": 0.1667,
-          "verdict": "correct"
+          "key_ans": "AB",
+          "earned": 0.0,
+          "verdict": "incorrect"
         },
         {
           "questionNo": 2,

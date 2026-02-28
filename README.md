@@ -26,6 +26,7 @@ An automated optical scoring system for paper-based multiple-choice question (MC
   - [Running the Scoring Pipeline](#running-the-scoring-pipeline)
   - [Output Description](#output-description)
 - [Models](#models)
+- [Grading](#grading)
 - [Configuration](#configuration)
 - [License](#license)
 - [Citation](#citation)
@@ -82,8 +83,8 @@ Input image (JPG/PNG)
                                                 │
 ┌──────────────────────────┐      ┌─────────────▼──────────────┐
 │  Answer Column Crops     │ ───► │  Answer Recognition        │  ← best.pt
-│  3 columns at x=30,350,  │      │  (predictAnswer)           │  (classes: unchoice, A–ABCD)
-│  660; y=480; 350×896 px  │      │  → per-question answer     │
+│  3 columns at x=30,350,  │      │  (predictAnswer)           │  (classes: unchoice,
+│  660; y=480; 350×896 px  │      │  → per-question answer     │        A–ABCD)
 │  → resize to 250 × 640   │      │     array                  │
 └──────────────────────────┘      └─────────────┬──────────────┘
                                                 │
@@ -205,40 +206,6 @@ The file `docs/AnswerSheetTemplate.pdf` is the official printable template that 
 
 ![Answer Sheet Template](docs/AnswerSheetTemplate.png)
 
-### Marker Positions
-
-| Marker    | Position     | Symbol              | Role                                            |
-| --------- | ------------ | ------------------- | ----------------------------------------------- |
-| `marker1` | Top-Left     | `■` (filled square) | Alignment — 3 copies                            |
-| `marker1` | Top-Right    | `■` (filled square) | Alignment                                       |
-| `marker1` | Bottom-Left  | `■` (filled square) | Alignment                                       |
-| `marker2` | Bottom-Right | `⊙` (circle-dot)    | Reference corner for rotation angle calculation |
-
-The asymmetric placement of `marker2` at bottom-right allows the algorithm to unambiguously determine the sheet's orientation and calculate the exact skew angle.
-
-### Information Zone (Fields 5, 6, 7)
-
-Located in the upper-right area. Each field is an OMR (Optical Mark Recognition) column grid where students fill in digit bubbles `0`–`9` column by column:
-
-| Field | Label       | Columns | Content                  |
-| ----- | ----------- | ------- | ------------------------ |
-| 5     | Mã lớp thi  | 6       | Exam class/course code   |
-| 6     | Mã SV (SBD) | 9       | Student ID number        |
-| 7     | Mã đề       | 3       | Exam set / test-set code |
-
-A blank or uncircled cell is treated as class `x`.
-
-### Answer Zone (Fields Q1–Q60)
-
-- **3 vertical columns** of questions, each holding up to **20 questions**
-- Each row offers **4 bubbles**: `A`, `B`, `C`, `D`
-- Students may fill **one or more bubbles** per question (multi-answer support: `AB`, `ACD`, `ABCD`, etc.)
-- A question with no bubble filled is recorded as `unchoice` (unanswered)
-
-### Barcode Strip
-
-A vertical barcode strip on the right edge is a printed identifier for the exam sheet (not processed by this software).
-
 ### Printing Notes
 
 - Print at **100% scale** on **A4 (210 × 297 mm)** — do **not** scale to fit
@@ -338,6 +305,79 @@ Label 3 from left to right: "x";1.jpg;0.68
 ```
 
 Each line contains: `<description>;<filename>;<confidence_score>`.
+
+---
+
+## Grading
+
+After running `scoring.py`, the `ScoredSheets/` folder contains the detected answers for each student. The `grade_from_key.py` script compares these results against a user-supplied answer key to compute each student's score.
+
+### Step 1 — Fill in the answer key
+
+Edit `answer_key.json` to provide the correct answers for each exam set code:
+
+```json
+{
+  "exam_name":       "Midterm Examination",
+  "subject":         "Introduction to Computer Science",
+  "total_questions": 60,
+  "total_score":     10.0,
+  "keys": {
+    "423": ["ABC", "ACD", "ABCD", "x", "BC", ...],
+    "915": ["A",   "B",   "C",   "x", "AB", ...]
+  }
+}
+```
+
+| Field             | Description                                                                                                                  |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `exam_name`       | Name of the exam (printed in the report)                                                                                     |
+| `subject`         | Subject name (printed in the report)                                                                                         |
+| `total_questions` | Number of questions per sheet (must match `--n` in `scoring.py`)                                                             |
+| `total_score`     | Maximum achievable score (e.g. `10.0`)                                                                                       |
+| `keys`            | Object mapping each exam set code to an array of correct answers. Use `"x"` for questions that are intentionally left blank. |
+
+### Step 2 — Run the grading script
+
+```bash
+python3 grade_from_key.py \
+  --scored images/answer_sheets/<exam_class_id>/ScoredSheets \
+  --key    answer_key.json \
+  --out    grading_report.json
+```
+
+### Output
+
+Results are printed to the console grouped by class code, and saved to `grading_report.json`:
+
+```
+  Class: 247103  (9 student(s))
+  Student Code     Exam Set      Score   Correct  Incorrect   Unanswered
+  ·····················································
+  20193046         423            9.83        59          1            0
+  ·····················································
+                     Average      9.83
+                     Highest      9.83
+                      Lowest      9.83
+
+  OVERALL  (10 students)
+    Average score   : 8.90 / 10.0
+    Highest         : 9.83
+    Lowest          : 0.50
+    Pass rate (≥50%): 9/10 (90.0%)
+```
+
+### Scoring rule
+
+A question scores full mark **only if the student's answer exactly matches the key**. Everything else — wrong answer, incomplete answer, or no answer — counts as **incorrect (0 points)**. There is no separate "unanswered" category.
+
+| Student answer | Key   | Result                 |
+| -------------- | ----- | ---------------------- |
+| `ABD`          | `ABD` | ✅ Correct — full mark |
+| `AB`           | `ABD` | ❌ Incorrect — 0 pts   |
+| `ABDC`         | `ABD` | ❌ Incorrect — 0 pts   |
+| `x` (blank)    | `ABD` | ❌ Incorrect — 0 pts   |
+| `x` (blank)    | `x`   | ✅ Correct — full mark |
 
 ---
 

@@ -11,10 +11,14 @@ Outputs:
 
 Usage
 ─────
-  python3 grade_from_key.py \\
-      --scored   images/answer_sheets/demo2/ScoredSheets \\
-      --key      answer_key.json \\
-      --out      grading_report.json
+  python3 grade_from_key/grade_from_key.py <exam_class_id>
+
+  Example:
+      python3 grade_from_key/grade_from_key.py demo2
+
+  Reads  : images/answer_sheets/<exam_class_id>/ScoredSheets/  (project root)
+  Key    : grade_from_key/answer_key.json
+  Output : grade_from_key/grading_report.json
 
 Answer key format  (answer_key.json)
 ──────────────────────────────────────────────────────────────────────
@@ -39,7 +43,11 @@ import os
 import sys
 import json
 import argparse
+from pathlib import Path
 from collections import defaultdict
+
+# Resolve project root (parent of this script's folder: grade_from_key/)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -49,8 +57,6 @@ from collections import defaultdict
 def _norm(s: str) -> str:
     """Uppercase, sort letters, treat blank / 'x' / '' / 'unchoice' as 'X'."""
     s = (s or "").strip().upper()
-    if s in ("", "X", "UNCHOICE"):
-        return "X"
     return "".join(sorted(set(s)))   # deduplicate + sort: "ACBD" → "ABCD"
 
 
@@ -133,7 +139,7 @@ def grade_sheet(sheet: dict, key_cfg: dict) -> dict:
     n_incorrect  = 0
 
     for q_no in range(1, total_q + 1):
-        key_ans     = correct_answers[q_no - 1] if q_no - 1 < len(correct_answers) else "x"
+        key_ans     = correct_answers[q_no - 1] if q_no - 1 < len(correct_answers) else ""
         student_ans = student_answers.get(q_no, "")
 
         earned, verdict = _score_question(student_ans, key_ans, mark_per_q)
@@ -146,7 +152,7 @@ def grade_sheet(sheet: dict, key_cfg: dict) -> dict:
 
         details.append({
             "questionNo":  q_no,
-            "student_ans": _norm(student_ans) if student_ans else "x",
+            "student_ans": _norm(student_ans) if student_ans else "",
             "key_ans":     _norm(key_ans),
             "earned":      round(earned, 4),
             "verdict":     verdict,
@@ -241,30 +247,32 @@ def print_report(results: list[dict], key_cfg: dict):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Grade MCQ scored sheets against an answer key file.")
-    parser.add_argument("--scored", required=True,
-                        help="Path to ScoredSheets folder "
-                             "(e.g. images/answer_sheets/demo2/ScoredSheets)")
-    parser.add_argument("--key", required=True,
-                        help="Path to answer_key.json")
-    parser.add_argument("--out", default="grading_report.json",
-                        help="Output JSON report path (default: grading_report.json)")
+        description="Grade MCQ scored sheets against answer_key.json.")
+    parser.add_argument("exam_class_id",
+                        help="Exam class folder name (e.g. demo2). "
+                             "Scored sheets are read from "
+                             "images/answer_sheets/<exam_class_id>/ScoredSheets/")
     args = parser.parse_args()
 
+    scored_dir = PROJECT_ROOT / "images" / "answer_sheets" / args.exam_class_id / "ScoredSheets"
+    key_path   = Path(__file__).resolve().parent / "answer_key.json"
+    out_path   = Path(__file__).resolve().parent / "grading_report.json"
+
     # Validate
-    if not os.path.isdir(args.scored):
-        print(f"[ERROR] ScoredSheets folder not found: {args.scored}")
+    if not scored_dir.is_dir():
+        print(f"[ERROR] ScoredSheets folder not found: {scored_dir}")
         sys.exit(1)
-    if not os.path.isfile(args.key):
-        print(f"[ERROR] Answer key not found: {args.key}")
+    if not key_path.is_file():
+        print(f"[ERROR] Answer key not found: {key_path}")
         sys.exit(1)
 
     # Load
-    key_cfg = load_answer_key(args.key)
-    sheets  = load_scored_sheets(args.scored)
-    print(f"[INFO] Loaded answer key   : {args.key}  "
+    key_cfg = load_answer_key(key_path)
+    sheets  = load_scored_sheets(scored_dir)
+    print(f"[INFO] Exam class   : {args.exam_class_id}")
+    print(f"[INFO] Answer key   : {key_path}  "
           f"(exam sets: {list(key_cfg.get('keys', {}).keys())})")
-    print(f"[INFO] Loaded scored sheets: {len(sheets)} file(s) from {args.scored}")
+    print(f"[INFO] Scored sheets: {len(sheets)} file(s) from {scored_dir}")
 
     # Grade
     results = [grade_sheet(s, key_cfg) for s in sheets]
@@ -274,15 +282,16 @@ def main():
 
     # Save full report
     report = {
-        "exam_name":    key_cfg.get("exam_name", ""),
-        "subject":      key_cfg.get("subject", ""),
-        "scoring_rule": "exact_match_only",
-        "total_score":  key_cfg.get("total_score", 10),
-        "results":      results,
+        "exam_class_id": args.exam_class_id,
+        "exam_name":     key_cfg.get("exam_name", ""),
+        "subject":       key_cfg.get("subject", ""),
+        "scoring_rule":  "exact_match_only",
+        "total_score":   key_cfg.get("total_score", 10),
+        "results":       results,
     }
-    with open(args.out, "w", encoding="utf-8") as f:
+    with open(out_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
-    print(f"[INFO] Full report saved → {args.out}")
+    print(f"[INFO] Full report saved → {out_path}")
 
 
 if __name__ == "__main__":

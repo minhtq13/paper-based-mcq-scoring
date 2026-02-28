@@ -98,11 +98,11 @@ Input image (JPG/PNG)
 
 **Key modules:**
 
-| File                | Description                                                                                     |
-| ------------------- | ----------------------------------------------------------------------------------------------- |
-| `scoring.py`        | Main pipeline: marker detection, image alignment, info/answer prediction, output writing        |
-| `utils.py`          | All utilities: geometry, perspective transform, angle calculation, class mapping, image helpers |
-| `grade_from_key.py` | Standalone grading script: compare scored sheets against an answer key file                     |
+| File                               | Description                                                                                     |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `scoring.py`                       | Main pipeline: marker detection, image alignment, info/answer prediction, output writing        |
+| `utils.py`                         | All utilities: geometry, perspective transform, angle calculation, class mapping, image helpers |
+| `grade_from_key/grade_from_key.py` | Standalone grading script: compare scored sheets against an answer key file                     |
 
 ---
 
@@ -186,8 +186,10 @@ paper-based-mcq-scoring/
 │
 ├── scoring.py                          # Main scoring pipeline
 ├── utils.py                            # All utility functions (geometry, labels, image helpers)
-├── grade_from_key.py                   # Grade scored sheets against an answer key file
-├── answer_key.json                     # Answer key template (fill in correct answers per exam set)
+├── grade_from_key/                     # Grading module
+│   ├── grade_from_key.py               # Script: compare scored sheets against answer key
+│   ├── answer_key.json                 # Answer key (fill in correct answers per exam set)
+│   └── grading_report.json             # (auto-generated) Grading output report
 ├── docs/                               # Documentation assets
 │   ├── AnswerSheetTemplate.pdf         # Printable answer sheet template
 │   ├── AnswerSheetTemplate.png         # Answer sheet template image
@@ -308,76 +310,23 @@ Each line contains: `<description>;<filename>;<confidence_score>`.
 
 ---
 
-## Grading
+## Grading With Answer Key
 
-After running `scoring.py`, the `ScoredSheets/` folder contains the detected answers for each student. The `grade_from_key.py` script compares these results against a user-supplied answer key to compute each student's score.
+After scoring, use the grading module to compare detected answers against the answer key and compute each student's score.
 
-### Step 1 — Fill in the answer key
+📄 **Full instructions → [`grade_from_key/README.md`](grade_from_key/README.md)**
 
-Edit `answer_key.json` to provide the correct answers for each exam set code:
-
-```json
-{
-  "exam_name":       "Midterm Examination",
-  "subject":         "Introduction to Computer Science",
-  "total_questions": 60,
-  "total_score":     10.0,
-  "keys": {
-    "423": ["ABC", "ACD", "ABCD", "x", "BC", ...],
-    "915": ["A",   "B",   "C",   "x", "AB", ...]
-  }
-}
-```
-
-| Field             | Description                                                                                                                  |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `exam_name`       | Name of the exam (printed in the report)                                                                                     |
-| `subject`         | Subject name (printed in the report)                                                                                         |
-| `total_questions` | Number of questions per sheet (must match `--n` in `scoring.py`)                                                             |
-| `total_score`     | Maximum achievable score (e.g. `10.0`)                                                                                       |
-| `keys`            | Object mapping each exam set code to an array of correct answers. Use `"x"` for questions that are intentionally left blank. |
-
-### Step 2 — Run the grading script
+**Quick start:**
 
 ```bash
-python3 grade_from_key.py \
-  --scored images/answer_sheets/<exam_class_id>/ScoredSheets \
-  --key    answer_key.json \
-  --out    grading_report.json
+# 1. Fill in the correct answers per exam set code
+nano grade_from_key/answer_key.json
+
+# 2. Run the grading script
+python3 grade_from_key/grade_from_key.py <exam_class_id>
 ```
 
-### Output
-
-Results are printed to the console grouped by class code, and saved to `grading_report.json`:
-
-```
-  Class: 247103  (9 student(s))
-  Student Code     Exam Set      Score   Correct  Incorrect   Unanswered
-  ·····················································
-  20193046         423            9.83        59          1            0
-  ·····················································
-                     Average      9.83
-                     Highest      9.83
-                      Lowest      9.83
-
-  OVERALL  (10 students)
-    Average score   : 8.90 / 10.0
-    Highest         : 9.83
-    Lowest          : 0.50
-    Pass rate (≥50%): 9/10 (90.0%)
-```
-
-### Scoring rule
-
-A question scores full mark **only if the student's answer exactly matches the key**. Everything else — wrong answer, incomplete answer, or no answer — counts as **incorrect (0 points)**. There is no separate "unanswered" category.
-
-| Student answer | Key   | Result                 |
-| -------------- | ----- | ---------------------- |
-| `ABD`          | `ABD` | ✅ Correct — full mark |
-| `AB`           | `ABD` | ❌ Incorrect — 0 pts   |
-| `ABDC`         | `ABD` | ❌ Incorrect — 0 pts   |
-| `x` (blank)    | `ABD` | ❌ Incorrect — 0 pts   |
-| `x` (blank)    | `x`   | ✅ Correct — full mark |
+Output is printed to the console and saved to `grade_from_key/grading_report.json`.
 
 ---
 
@@ -387,22 +336,22 @@ This branch uses a **single unified YOLOv8 model** (`best.pt`) trained on all 29
 
 | Class index | Class label | Task             |
 | ----------- | ----------- | ---------------- |
-| 0           | `unchoice`  | Answer: no mark  |
-| 1           | `A`         | Answer bubble    |
-| 2           | `B`         | Answer bubble    |
-| 3           | `C`         | Answer bubble    |
-| 4           | `D`         | Answer bubble    |
-| 5           | `AB`        | Answer bubble    |
-| 6           | `AC`        | Answer bubble    |
-| 7           | `AD`        | Answer bubble    |
-| 8           | `BC`        | Answer bubble    |
-| 9           | `BD`        | Answer bubble    |
-| 10          | `CD`        | Answer bubble    |
-| 11          | `ABC`       | Answer bubble    |
-| 12          | `ABD`       | Answer bubble    |
-| 13          | `ACD`       | Answer bubble    |
-| 14          | `BCD`       | Answer bubble    |
-| 15          | `ABCD`      | Answer bubble    |
+| 0           | `0000`      | Answer bubble    |
+| 1           | `1000`      | Answer bubble    |
+| 2           | `0100`      | Answer bubble    |
+| 3           | `0010`      | Answer bubble    |
+| 4           | `0001`      | Answer bubble    |
+| 5           | `1100`      | Answer bubble    |
+| 6           | `1010`      | Answer bubble    |
+| 7           | `1001`      | Answer bubble    |
+| 8           | `0110`      | Answer bubble    |
+| 9           | `0101`      | Answer bubble    |
+| 10          | `0011`      | Answer bubble    |
+| 11          | `1110`      | Answer bubble    |
+| 12          | `1101`      | Answer bubble    |
+| 13          | `1011`      | Answer bubble    |
+| 14          | `0111`      | Answer bubble    |
+| 15          | `1111`      | Answer bubble    |
 | 16          | `0`         | Info digit       |
 | 17          | `1`         | Info digit       |
 | 18          | `2`         | Info digit       |
@@ -413,7 +362,7 @@ This branch uses a **single unified YOLOv8 model** (`best.pt`) trained on all 29
 | 23          | `7`         | Info digit       |
 | 24          | `8`         | Info digit       |
 | 25          | `9`         | Info digit       |
-| 26          | `x`         | Info: blank cell |
+| 26          | `unchoice`  | Info: blank cell |
 | 27          | `marker1`   | Alignment marker |
 | 28          | `marker2`   | Alignment marker |
 

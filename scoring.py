@@ -9,7 +9,7 @@ from utils import (
     orient_image_step_by_step, generate_output,
     get_parameter_number_anwser, get_remainder,
     remove_elements_info, remove_elements_answer, remove_elements_marker,
-    get_class, get_class_marker, get_coordinates, get_coordinates_info,
+    get_class, get_coordinates, get_coordinates_info,
     orient_image_by_angle, rotate_image_by_angle,
     warning_color, green_color, blue_color, threshold_warning,
     mergeImages, crop_image_answer, crop_image_info,

@@ -92,10 +92,6 @@ def generate_output(image: np.ndarray, corners: list) -> np.ndarray:
 # Class label mapping  (YOLO class index → string label)
 # ─────────────────────────────────────────────────────────────────
 
-def get_class_marker(argument):
-    """Map marker class index to its label string."""
-    return {0: "marker1", 1: "marker2"}.get(argument, "")
-
 
 def get_class(argument):
     """

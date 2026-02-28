@@ -5,11 +5,15 @@ from ultralytics import YOLO
 import argparse
 import json
 import shutil
-from tool_algorithm import orient_image_step_by_step, generate_output, get_parameter_number_anwser, remove_elements_info, remove_elements_answer, remove_elements_marker
-from tool_algorithm import get_class, get_coordinates, get_coordinates_info, get_remainder, orient_image_by_angle, get_class
-from tool_algorithm import warning_color, green_color, blue_color, threshold_warning
-from tool_algorithm import rotate_image_by_angle
-from common_main import mergeImages, crop_image_answer, crop_image_info
+from utils import (
+    orient_image_step_by_step, generate_output,
+    get_parameter_number_anwser, get_remainder,
+    remove_elements_info, remove_elements_answer, remove_elements_marker,
+    get_class, get_class_marker, get_coordinates, get_coordinates_info,
+    orient_image_by_angle, rotate_image_by_angle,
+    warning_color, green_color, blue_color, threshold_warning,
+    mergeImages, crop_image_answer, crop_image_info,
+)
 
 
 # ============================================ HANDLE MARKER =======================================
@@ -62,9 +66,6 @@ def get_marker(image, model):
         # print(marker_coordinates_true, alpha_degrees)
         rotated_image, rotation_matrix = rotate_image_by_angle(image, alpha_degrees)
     
-        # imgResize_final = cv2.resize(rotated_image, (506, 800), interpolation=cv2.INTER_AREA)
-        # cv2.imshow("Final Document", imgResize_final)
-        # cv2.waitKey(0)
         # ===== STEP 8 & 9: Crop image from the rotated image =====
         marker_coordinates_true = marker_coordinates_true.reshape(-1, 2).astype(int).tolist()
         # Apply rotation matrix to find new coordinates of the corners
@@ -79,19 +80,10 @@ def get_marker(image, model):
 
         # Crop the rotated image (rotated_image) using the new coordinates (rotated_corners)
         cropped_document = generate_output(rotated_image, rotated_corners)
-        # cv2.imshow("Cropped Document", cropped_document)
-        # cv2.waitKey(0)
         
         # Show the cropped image
         imgResize_cropped = cv2.resize(cropped_document, (506, 800), interpolation=cv2.INTER_AREA)
-        # cv2.imshow("Cropped Document", imgResize_cropped)
-        # cv2.waitKey(0)
-
         
-        # Show the final image
-        # imgResize_final = cv2.resize(final_document, (506, 800), interpolation=cv2.INTER_AREA)
-        # cv2.imshow("Final Document", imgResize_final)
-        # cv2.waitKey(0)
 
         return cropped_document, maybe_wrong_marker
     except Exception as e:
@@ -146,8 +138,6 @@ def predictAnswer(img, model, index, numberAnswer):
 
 
 def predictInfo(img, model, filename):
-    # cv2.imshow("img", img)
-    # cv2.waitKey(0)
     results = model.predict(img)
     data = results[0].boxes.data
     numberClassRecognition = len(data)

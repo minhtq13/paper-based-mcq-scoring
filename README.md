@@ -75,8 +75,8 @@ Input image (JPG/PNG)
             ▼
 ┌──────────────────────────┐      ┌────────────────────────────┐
 │  Info Zone Crop          │ ───► │  Info Recognition          │  ← best.pt
-│  x: 500–1006, y: 0–500  │      │  (predictInfo)             │  (classes: 0–9, x)
-│  → resize to 640 × 640  │      │  → class_code, student_code│
+│  x: 500–1006, y: 0–500   │      │  (predictInfo)             │  (classes: 0–9, x)
+│  → resize to 640 × 640   │      │  → class_code, student_code│
 └──────────────────────────┘      │     exam_code              │
                                   └─────────────┬──────────────┘
                                                 │
@@ -93,13 +93,15 @@ Input image (JPG/PNG)
                                └────────────────────────────────┘
 ```
 
+![System Flow](docs/StructureDiagram.png)
+
 **Key modules:**
 
-| File                | Description                                                                                |
-| ------------------- | ------------------------------------------------------------------------------------------ |
-| `main_algorithm.py` | Main pipeline: marker detection, image alignment, info/answer prediction, output writing   |
-| `tool_algorithm.py` | Utility functions: geometry, perspective transform, angle calculation, class label mapping |
-| `common_main.py`    | Shared helpers: image cropping (info zone & answer columns), image merging                 |
+| File                | Description                                                                                     |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| `scoring.py`        | Main pipeline: marker detection, image alignment, info/answer prediction, output writing        |
+| `utils.py`          | All utilities: geometry, perspective transform, angle calculation, class mapping, image helpers |
+| `grade_from_key.py` | Standalone grading script: compare scored sheets against an answer key file                     |
 
 ---
 
@@ -127,7 +129,9 @@ git clone -b yolov8 https://github.com/<your-username>/paper-based-mcq-scoring.g
 cd paper-based-mcq-scoring
 ```
 
-### 2. Create and activate a virtual environment (recommended)
+### 2. (Optional) Create a virtual environment
+
+Using a virtual environment is not required, but it is recommended to avoid conflicts with other packages already installed on your machine.
 
 ```bash
 python -m venv venv
@@ -138,6 +142,8 @@ source venv/bin/activate
 # On Windows:
 venv\Scripts\activate
 ```
+
+> You can skip this step and install dependencies directly into your system Python if preferred.
 
 ### 3. Install dependencies
 
@@ -177,10 +183,14 @@ paper-based-mcq-scoring/
 │           ├── ScoredSheets/           # (auto-created) JSON result files
 │           └── MayBeWrong/             # (auto-created) Low-confidence warning log
 │
-├── main_algorithm.py                   # Main scoring pipeline
-├── tool_algorithm.py                   # Geometry & label utility functions
-├── common_main.py                      # Image crop & merge helpers
-├── AnswerSheetTemplateNew.pdf          # Printable answer sheet template
+├── scoring.py                          # Main scoring pipeline
+├── utils.py                            # All utility functions (geometry, labels, image helpers)
+├── grade_from_key.py                   # Grade scored sheets against an answer key file
+├── answer_key.json                     # Answer key template (fill in correct answers per exam set)
+├── docs/                               # Documentation assets
+│   ├── AnswerSheetTemplate.pdf         # Printable answer sheet template
+│   ├── AnswerSheetTemplate.png         # Answer sheet template image
+│   └── StructureDiagram.png            # System architecture diagram
 ├── requirements.txt
 └── README.md
 ```
@@ -189,34 +199,11 @@ paper-based-mcq-scoring/
 
 ## Answer Sheet Template
 
-The file `AnswerSheetTemplateNew.pdf` is the official printable template that this system is designed to process. Print it on **A4 paper** before scanning or photographing.
+The file `docs/AnswerSheetTemplate.pdf` is the official printable template that this system is designed to process. Print it on **A4 paper** before scanning or photographing.
 
 ### Layout Overview
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│ [■] TL marker          PHIẾU TRẢ LỜI TRẮC NGHIỆM          [■] TR│  ← marker1 (×3)
-│                                                                  │
-│  ┌─────────────────┐  ┌──────────────────────────────────────┐  │
-│  │ Supervisor sign │  │  1. Môn thi  (subject)               │  │
-│  │ box 1 & 2       │  │  2. Họ và tên (full name)            │  │
-│  └─────────────────┘  │  3. Ngày thi (exam date)             │  │
-│                       │  4. Chữ ký   (signature)             │  │
-│                       └──────────────────────────────────────┘  │
-│                                                                  │
-│  5. Mã lớp thi   6. Mã SV (SBD)          7. Mã đề             │
-│  ┌──────────┐    ┌──────────────────┐     ┌─────┐              │
-│  │6-col OMR │    │9-col OMR (0–9,x) │     │3-col│  ← info zone │
-│  └──────────┘    └──────────────────┘     └─────┘              │
-│                                                                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ║ barcode ║│
-│  │ Q1–Q20      │  │ Q21–Q40     │  │ Q41–Q60     │  ║  strip  ║│
-│  │ (A B C D)   │  │ (A B C D)   │  │ (A B C D)   │  ║         ║│
-│  └─────────────┘  └─────────────┘  └─────────────┘  ║         ║│
-│                                                                  │
-│ [■] BL marker                                          [⊙] BR   │  ← marker2 (×1)
-└──────────────────────────────────────────────────────────────────┘
-```
+![Answer Sheet Template](docs/AnswerSheetTemplate.png)
 
 ### Marker Positions
 
@@ -285,13 +272,13 @@ mkdir -p images/answer_sheets/<exam_class_id>
 Run the main script from the project root, passing the exam class folder name as the argument:
 
 ```bash
-python main_algorithm.py <exam_class_id>
+python3 scoring.py <exam_class_id>
 ```
 
 **Example:**
 
 ```bash
-python main_algorithm.py demo2
+python3 scoring.py demo2
 ```
 
 This will process all images inside `images/answer_sheets/demo2/` and write results to the automatically created subdirectories.
@@ -400,13 +387,13 @@ The model is a custom-trained **YOLOv8** detector on a dataset of Vietnamese uni
 
 Key parameters that can be adjusted directly in the source files:
 
-| Parameter           | Location            | Default           | Description                                                           |
-| ------------------- | ------------------- | ----------------- | --------------------------------------------------------------------- |
-| `threshold_warning` | `tool_algorithm.py` | `0.79`            | Confidence threshold below which a prediction is flagged as uncertain |
-| `numberAnswer`      | `main_algorithm.py` | `60`              | Number of questions per answer sheet (supported: `20`, `40`, `60`)    |
-| `pWeight`           | `main_algorithm.py` | `./Model/best.pt` | Path to the unified YOLOv8 model                                      |
+| Parameter           | Location     | Default           | Description                                                           |
+| ------------------- | ------------ | ----------------- | --------------------------------------------------------------------- |
+| `threshold_warning` | `utils.py`   | `0.79`            | Confidence threshold below which a prediction is flagged as uncertain |
+| `numberAnswer`      | `scoring.py` | `60`              | Number of questions per answer sheet (supported: `20`, `40`, `60`)    |
+| `pWeight`           | `scoring.py` | `./Model/best.pt` | Path to the unified YOLOv8 model                                      |
 
-**Image crop coordinates** (fixed for the standard answer sheet layout, defined in `common_main.py`):
+**Image crop coordinates** (fixed for the standard answer sheet layout, defined in `utils.py`):
 
 | Region          | x range  | y range  | Resized to |
 | --------------- | -------- | -------- | ---------- |

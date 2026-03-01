@@ -4,6 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.9.0-green.svg)]()
 [![YOLOv11](https://img.shields.io/badge/YOLOv11-Ultralytics-red.svg)](https://docs.ultralytics.com/vi/models/yolo11/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18816315.svg)](https://doi.org/10.5281/zenodo.18816315)
 
 An automated optical scoring system for paper-based multiple-choice question (MCQ) answer sheets. The system uses computer vision and deep learning (YOLOv11) to detect alignment markers, extract student/exam information, and recognize selected answers from scanned or photographed answer sheet images — producing structured JSON output suitable for downstream grading pipelines.
 
@@ -24,7 +25,9 @@ An automated optical scoring system for paper-based multiple-choice question (MC
   - [Running the Scoring Pipeline](#running-the-scoring-pipeline)
   - [Output Description](#output-description)
 - [Models](#models)
+- [Grading With Answer Key](#grading-with-answer-key)
 - [Configuration](#configuration)
+- [Dataset](#dataset)
 - [License](#license)
 
 ---
@@ -101,39 +104,15 @@ This specialization allows each model to be fine-tuned independently and retrain
 
 ## System Architecture
 
-```
-Input images (JPG/PNG)
-        │
-        ▼
-┌─────────────────────┐
-│  Marker Detection   │  ← marker.pt (YOLOv11)
-│  & Image Alignment  │
-└────────┬────────────┘
-         │  Corrected & cropped document
-         ▼
-┌─────────────────────┐      ┌─────────────────────┐
-│  Info Zone Cropping │ ───► │  Info Recognition   │  ← info.pt (YOLOv11)
-│  (Student/Exam ID)  │      │  (digits 0-9, blank)│
-└─────────────────────┘      └──────────┬──────────┘
-                                        │
-┌─────────────────────┐      ┌──────────▼──────────┐
-│  Answer Zone        │ ───► │  Answer Recognition │  ← answer.pt (YOLOv11)
-│  Column Cropping    │      │  (A/B/C/D combos)   │
-└─────────────────────┘      └──────────┬──────────┘
-                                        │
-                             ┌──────────▼──────────┐
-                             │  JSON Output +      │
-                             │  Annotated Images   │
-                             └─────────────────────┘
-```
+![System Architecture](docs/StructureDiagram.png)
 
 **Key modules:**
 
-| File                | Description                                                                              |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| `main_algorithm.py` | Main pipeline: marker detection, image alignment, info/answer prediction, output writing |
-| `tool_algorithm.py` | Utility functions: geometry, perspective transform, angle calculation, label mapping     |
-| `common_main.py`    | Shared helpers: image cropping, image merging                                            |
+| File                               | Description                                                                                     |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `scoring.py`                       | Main pipeline: marker detection, image alignment, info/answer prediction, output writing        |
+| `utils.py`                         | All utilities: geometry, perspective transform, angle calculation, class mapping, image helpers |
+| `grade_from_key/grade_from_key.py` | Standalone grading script: compare scored sheets against an answer key file                     |
 
 ---
 
@@ -217,10 +196,16 @@ paper-based-mcq-scoring/
 │           ├── ScoredSheets/       # (auto-created) JSON result files
 │           └── MayBeWrong/         # (auto-created) Low-confidence warning log
 │
-├── main_algorithm.py               # Main scoring pipeline
-├── tool_algorithm.py               # Geometry & label utility functions
-├── common_main.py                  # Image crop & merge helpers
-├── AnswerSheetTemplateNew.pdf          # Printable answer sheet template
+├── scoring.py                      # Main scoring pipeline
+├── utils.py                        # All utility functions (geometry, labels, image helpers)
+├── grade_from_key/                 # Grading module
+│   ├── grade_from_key.py           # Script: compare scored sheets against answer key
+│   ├── answer_key.json             # Answer key (fill in correct answers per exam set)
+│   └── grading_report.json         # (auto-generated) Grading output report
+├── docs/                           # Documentation assets
+│   ├── AnswerSheetTemplate.pdf     # Printable answer sheet template
+│   ├── AnswerSheetTemplate.png     # Answer sheet template image
+│   └── StructureDiagram.png        # System architecture diagram
 ├── requirements.txt
 └── README.md
 ```
@@ -229,69 +214,9 @@ paper-based-mcq-scoring/
 
 ## Answer Sheet Template
 
-The file `AnswerSheetTemplateNew.pdf` is the official printable template that this system is designed to process. Print it on **A4 paper** before scanning or photographing.
+The file `docs/AnswerSheetTemplate.pdf` is the official printable template that this system is designed to process. Print it on **A4 paper** before scanning or photographing.
 
-### Layout Overview
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│ [■] TL marker          PHIẾU TRẢ LỜI TRẮC NGHIỆM          [■] TR│  ← marker1 (×3)
-│                                                                  │
-│  ┌─────────────────┐  ┌──────────────────────────────────────┐  │
-│  │ Supervisor sign │  │  1. Môn thi  (subject)               │  │
-│  │ box 1 & 2       │  │  2. Họ và tên (full name)            │  │
-│  └─────────────────┘  │  3. Ngày thi (exam date)             │  │
-│                       │  4. Chữ ký   (signature)             │  │
-│                       └──────────────────────────────────────┘  │
-│                                                                  │
-│  5. Mã lớp thi   6. Mã SV (SBD)          7. Mã đề             │
-│  ┌──────────┐    ┌──────────────────┐     ┌─────┐              │
-│  │6-col OMR │    │10-col OMR (0–9,x) │     │3-col│  ← info zone │
-│  └──────────┘    └──────────────────┘     └─────┘              │
-│                                                                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ║ barcode ║│
-│  │ Q1–Q20      │  │ Q21–Q40     │  │ Q41–Q60     │  ║  strip  ║│
-│  │ (A B C D)   │  │ (A B C D)   │  │ (A B C D)   │  ║         ║│
-│  └─────────────┘  └─────────────┘  └─────────────┘  ║         ║│
-│                                                                  │
-│ [■] BL marker                                          [⊙] BR   │  ← marker2 (×1)
-└──────────────────────────────────────────────────────────────────┘
-```
-
-### Marker Positions
-
-| Marker    | Position     | Symbol              | Role                                            |
-| --------- | ------------ | ------------------- | ----------------------------------------------- |
-| `marker1` | Top-Left     | `■` (filled square) | Alignment — 3 copies                            |
-| `marker1` | Top-Right    | `■` (filled square) | Alignment                                       |
-| `marker1` | Bottom-Left  | `■` (filled square) | Alignment                                       |
-| `marker2` | Bottom-Right | `⊙` (circle-dot)    | Reference corner for rotation angle calculation |
-
-The asymmetric placement of `marker2` at bottom-right allows the algorithm to unambiguously determine the sheet's orientation and calculate the exact skew angle.
-
-### Information Zone (Fields 5, 6, 7)
-
-Located in the upper-right area. Each field is an OMR (Optical Mark Recognition) column grid where students fill in digit bubbles `0`–`9` column by column:
-
-| Field | Label       | Columns | Content                  |
-| ----- | ----------- | ------- | ------------------------ |
-| 5     | Mã lớp thi  | 6       | Exam class/course code   |
-| 6     | Mã SV (SBD) | 10      | Student ID number        |
-| 7     | Mã đề       | 3       | Exam set / test-set code |
-
-- A blank or uncircled cell is treated as class `x`.
-- In column 1 of field 6, describe the student type (B: bachelor, E: engineer, M: master). The custom code for Hanoi University of Technology students still uses the 0-9 and x labels as in the model above.
-
-### Answer Zone (Fields Q1–Q60)
-
-- **3 vertical columns** of questions, each holding up to **20 questions**
-- Each row offers **4 bubbles**: `A`, `B`, `C`, `D`
-- Students may fill **one or more bubbles** per question (multi-answer support: `AB`, `ACD`, `ABCD`, etc.)
-- A question with no bubble filled is recorded as `unchoice` (unanswered)
-
-### Barcode Strip
-
-A vertical barcode strip on the right edge is a printed identifier for the exam sheet (not processed by this software).
+![Answer Sheet Template](docs/AnswerSheetTemplate.png)
 
 ### Printing Notes
 
@@ -326,13 +251,13 @@ mkdir -p images/answer_sheets/<exam_class_id>
 Run the main script from the project root, passing the exam class folder name as the argument:
 
 ```bash
-python main_algorithm.py <exam_class_id>
+python scoring.py <exam_class_id>
 ```
 
 **Example:**
 
 ```bash
-python main_algorithm.py demo1
+python scoring.py demo1
 ```
 
 This will process all images inside `images/answer_sheets/demo1/` and write results to the automatically created subdirectories.
@@ -353,7 +278,7 @@ For each successfully processed answer sheet image (e.g., `1.jpg`), the system p
   "answers": [
     { "questionNo": 1, "selectedAnswers": "A" },
     { "questionNo": 2, "selectedAnswers": "BC" },
-    { "questionNo": 3, "selectedAnswers": "x" },
+    { "questionNo": 3, "selectedAnswers": "" },
     ...
     { "questionNo": 60, "selectedAnswers": "D" }
   ],
@@ -363,17 +288,17 @@ For each successfully processed answer sheet image (e.g., `1.jpg`), the system p
 }
 ```
 
-| Field                       | Type      | Description                                                                                                |
-| --------------------------- | --------- | ---------------------------------------------------------------------------------------------------------- |
-| `examClassCode`             | `string`  | Detected class/course code from the info zone                                                              |
-| `studentCode`               | `string`  | Detected student ID number                                                                                 |
-| `testSetCode`               | `string`  | Detected test/exam set code                                                                                |
-| `answers`                   | `array`   | List of per-question answer objects                                                                        |
-| `answers[].questionNo`      | `integer` | Question number (1-indexed)                                                                                |
-| `answers[].selectedAnswers` | `string`  | Selected answer(s): `"A"`, `"B"`, `"C"`, `"D"`, combinations like `"AB"`, `"BCD"`, or `"x"` for unanswered |
-| `handledScoredImg`          | `string`  | Path to the annotated output image                                                                         |
-| `originalImg`               | `string`  | Path to the original input image                                                                           |
-| `originalImgFileName`       | `string`  | File name of the original input image                                                                      |
+| Field                       | Type      | Description                                                                                               |
+| --------------------------- | --------- | --------------------------------------------------------------------------------------------------------- |
+| `examClassCode`             | `string`  | Detected class/course code from the info zone                                                             |
+| `studentCode`               | `string`  | Detected student ID number                                                                                |
+| `testSetCode`               | `string`  | Detected test/exam set code                                                                               |
+| `answers`                   | `array`   | List of per-question answer objects                                                                       |
+| `answers[].questionNo`      | `integer` | Question number (1-indexed)                                                                               |
+| `answers[].selectedAnswers` | `string`  | Selected answer(s): `"A"`, `"B"`, `"C"`, `"D"`, combinations like `"AB"`, `"BCD"`, or `""` for unanswered |
+| `handledScoredImg`          | `string`  | Path to the annotated output image                                                                        |
+| `originalImg`               | `string`  | Path to the original input image                                                                          |
+| `originalImgFileName`       | `string`  | File name of the original input image                                                                     |
 
 #### 2. Annotated Image — `HandledSheets/handled_<filename>.<ext>`
 
@@ -387,11 +312,31 @@ A copy of the answer sheet with colored bounding boxes drawn over detected answe
 If any detection has a confidence score below the threshold (`0.79` by default), a line is appended:
 
 ```
-Label "A" question 5;1.jpg;0.71
-Label 3 from left to right: "x";1.jpg;0.68
+[LOW CONF] Answer zone | File: 1.jpg | Question 5 | Predicted: "A" | Conf: 0.71
+[LOW CONF] Info zone   | File: 1.jpg | Column 4 (left→right) | Predicted: "" | Conf: 0.68
 ```
 
-Each line contains: `<description>;<filename>;<confidence_score>`.
+Each record is a single line with `|`-separated fields: zone type, filename, location, predicted label, and confidence score.
+
+---
+
+## Grading With Answer Key
+
+After scoring, use the grading module to compare detected answers against the answer key and compute each student's score.
+
+📄 **Full instructions → [`grade_from_key/README.md`](grade_from_key/README.md)**
+
+**Quick start:**
+
+```bash
+# 1. Fill in the correct answers per exam set code
+nano grade_from_key/answer_key.json
+
+# 2. Run the grading script
+python3 grade_from_key/grade_from_key.py <exam_class_id>
+```
+
+Output is printed to the console and saved to `grade_from_key/grading_report.json`.
 
 ---
 
@@ -399,11 +344,11 @@ Each line contains: `<description>;<filename>;<confidence_score>`.
 
 This branch uses three custom-trained **YOLOv11** object detection models, one dedicated per task:
 
-| Model file  | Task                         | Input region                    | Output classes                                                                                         |
-| ----------- | ---------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `marker.pt` | Alignment marker detection   | Full answer sheet image         | `marker1` (×3, at TL/TR/BL), `marker2` (×1, at BR)                                                     |
-| `info.pt`   | Student info zone OCR        | Cropped info zone (640×640)     | `0`–`9`, `x` (uncircled/blank)                                                                         |
-| `answer.pt` | Answer bubble classification | Cropped answer column (250×640) | `unchoice`, `A`, `B`, `C`, `D`, `AB`, `AC`, `AD`, `BC`, `BD`, `CD`, `ABC`, `ABD`, `ACD`, `BCD`, `ABCD` |
+| Model file  | Task                         | Input region                    | Output classes                                                                                                                 |
+| ----------- | ---------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `marker.pt` | Alignment marker detection   | Full answer sheet image         | `marker1` (×3, at TL/TR/BL), `marker2` (×1, at BR)                                                                             |
+| `info.pt`   | Student info zone OCR        | Cropped info zone (640×640)     | `0`–`9`, `unchoice` (uncircled/blank)                                                                                          |
+| `answer.pt` | Answer bubble classification | Cropped answer column (250×640) | `0000`, `0001`, `0010`, `0011`, `0100`, `0101`, `0110`, `0111`, `1000`, `1001`, `1010`, `1011`, `1100`, `1101`, `1110`, `1111` |
 
 All three models are based on the **YOLOv11m** (nano) architecture, trained on a custom dataset of Vietnamese university MCQ answer sheets.
 
@@ -415,13 +360,25 @@ All three models are based on the **YOLOv11m** (nano) architecture, trained on a
 
 Key parameters that can be adjusted directly in the source files:
 
-| Parameter           | Location                         | Default             | Description                                                           |
-| ------------------- | -------------------------------- | ------------------- | --------------------------------------------------------------------- |
-| `threshold_warning` | `tool_algorithm.py`              | `0.79`              | Confidence threshold below which a prediction is flagged as uncertain |
-| `numberAnswer`      | `main_algorithm.py` (main block) | `60`                | Number of questions per answer sheet (supported: `20`, `40`, `60`)    |
-| `pWeight_marker`    | `main_algorithm.py`              | `./Model/marker.pt` | Path to the marker detection model                                    |
-| `pWeight_info`      | `main_algorithm.py`              | `./Model/info.pt`   | Path to the info recognition model                                    |
-| `pWeight_answer`    | `main_algorithm.py`              | `./Model/answer.pt` | Path to the answer recognition model                                  |
+| Parameter           | Location                  | Default             | Description                                                           |
+| ------------------- | ------------------------- | ------------------- | --------------------------------------------------------------------- |
+| `threshold_warning` | `utils.py`                | `0.79`              | Confidence threshold below which a prediction is flagged as uncertain |
+| `numberAnswer`      | `scoring.py` (main block) | `60`                | Number of questions per answer sheet (supported: `20`, `40`, `60`)    |
+| `pWeight_marker`    | `scoring.py`              | `./Model/marker.pt` | Path to the marker detection model                                    |
+| `pWeight_info`      | `scoring.py`              | `./Model/info.pt`   | Path to the info recognition model                                    |
+| `pWeight_answer`    | `scoring.py`              | `./Model/answer.pt` | Path to the answer recognition model                                  |
+
+---
+
+## Dataset
+
+The training and evaluation dataset for this system is publicly available on Zenodo:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18816315.svg)](https://doi.org/10.5281/zenodo.18816315)
+
+**Dataset:** [https://doi.org/10.5281/zenodo.18816315](https://doi.org/10.5281/zenodo.18816315)
+
+The dataset contains labelled answer sheet images used to train and evaluate the YOLOv11 models for marker detection, student info recognition, and answer bubble classification.
 
 ---
 

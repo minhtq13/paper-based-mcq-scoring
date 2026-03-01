@@ -1,0 +1,1 @@
+Image demo7.jpg could not detect enough markers or may be missing corners

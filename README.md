@@ -26,8 +26,9 @@ An automated optical scoring system for paper-based multiple-choice question (MC
   - [Running the Scoring Pipeline](#running-the-scoring-pipeline)
   - [Output Description](#output-description)
 - [Models](#models)
-- [Grading](#grading)
+- [Grading With Answer Key](#grading-with-answer-key)
 - [Configuration](#configuration)
+- [Dataset](#dataset)
 - [License](#license)
 - [Citation](#citation)
 - [Contact](#contact)
@@ -390,6 +391,18 @@ Key parameters that can be adjusted directly in the source files:
 | Answer column 1 | 30–380   | 480–1376 | 250 × 640  |
 | Answer column 2 | 350–700  | 480–1376 | 250 × 640  |
 | Answer column 3 | 660–1010 | 480–1376 | 250 × 640  |
+
+---
+
+## Dataset
+
+The training and evaluation dataset for this system is publicly available on Zenodo:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18816315.svg)](https://doi.org/10.5281/zenodo.18816315)
+
+**Dataset:** [https://doi.org/10.5281/zenodo.18816315](https://doi.org/10.5281/zenodo.18816315)
+
+The dataset contains labelled answer sheet images used to train and evaluate the YOLOv8 model for marker detection, student info recognition, and answer bubble classification.
 
 ---
 

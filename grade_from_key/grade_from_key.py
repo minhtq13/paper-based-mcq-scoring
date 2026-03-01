@@ -55,7 +55,6 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _norm(s: str) -> str:
-    """Uppercase, sort letters, treat blank / 'x' / '' / 'unchoice' as 'X'."""
     s = (s or "").strip().upper()
     return "".join(sorted(set(s)))   # deduplicate + sort: "ACBD" → "ABCD"
 

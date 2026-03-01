@@ -70,7 +70,7 @@ Open `answer_key.json` and fill in the correct answers for each exam set code (`
 | `"A"`    | Single answer                                        |
 | `"AB"`   | Multiple answers (letters in any order are accepted) |
 | `"ABCD"` | All four options                                     |
-| `"x"`    | Question intentionally left blank in the key         |
+| `""`     | Question intentionally left blank in the key         |
 
 > **Note:** Letter order does not matter — `"BA"` and `"AB"` are treated as equal.
 

@@ -18,8 +18,7 @@ from utils import (
 
 # ============================================ HANDLE MARKER =======================================
 
-def get_marker(image, model, folder_maybe_wrong):
-    maybe_wrong_marker = []  # Initialize variable
+def get_marker(image, model, maybe_wrong_marker, folder_maybe_wrong):
     try:
         results = model.predict(image)
         data = results[0].boxes.data
@@ -57,9 +56,6 @@ def get_marker(image, model, folder_maybe_wrong):
         if count_marker2 != 1 or count_maker1 != 3:
             error_message = f"Image {filename} could not detect enough markers or may be missing corners"
             maybe_wrong_marker.append(error_message)
-            with open(f"{folder_maybe_wrong}/maybe_wrong.txt", "w", encoding="utf-8") as f:
-                for string in maybe_wrong_marker:
-                    f.write(string + "\n")
             raise Exception(error_message)
 
         marker_coordinates_true, alpha_degrees = orient_image_step_by_step(list_marker, marker_coordinates, marker2)
@@ -235,7 +231,7 @@ if __name__ == "__main__":
         if filename.lower().endswith((".jpg", ".jpeg", ".png")):
             image_path = os.path.join(folder_path, filename)
             image = cv2.imread(image_path)
-            document, maybe_wrong_marker = get_marker(image, model_marker, folder_maybe_wrong)
+            document, maybe_wrong_marker = get_marker(image, model_marker, maybe_wrong_marker, folder_maybe_wrong)
             if (document is None):
                 continue
             

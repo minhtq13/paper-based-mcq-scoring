@@ -116,7 +116,7 @@ def predictAnswer(img, model, index, numberAnswer):
         conf = round(float(answer[4]), 3)
         class_answer = int(answer[5])
         if conf < threshold_warning:
-            maybe_wrong_answer.append(f'Label "{get_class(class_answer)}" question {index * 20 + i + 1};{filename};{conf}')
+            maybe_wrong_answer.append(f'[LOW CONF] Answer zone | File: {filename} | Question {index * 20 + i + 1} | Predicted: "{get_class(class_answer)}" | Conf: {conf}')
             
         for char in str(get_class(class_answer)):
             point1, point2, point3, point4 = get_coordinates(x1, y1, x2, y2, char)
@@ -157,7 +157,7 @@ def predictInfo(img, model, filename):
         conf = round(float(info[4]), 3)
         class_info = int(info[5])
         if conf < threshold_warning:
-            maybe_wrong_info.append(f'Label {i} from left to right: "{get_class(class_info)}";{filename};{conf}')
+            maybe_wrong_info.append(f'[LOW CONF] Info zone | File: {filename} | Column {i + 1} (left→right) | Predicted: "{get_class(class_info)}" | Conf: {conf}')
 
         point1, point2, point3, point4 = get_coordinates_info(x1, y1, x2, y2, get_class(class_info))
         cv2.rectangle(img, (point1, point2), (point3, point4), 

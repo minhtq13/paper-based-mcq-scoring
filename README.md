@@ -297,16 +297,16 @@ A copy of the answer sheet with colored bounding boxes drawn over detected answe
 - 🟢 **Green box**: high-confidence prediction (conf ≥ 0.79)
 - 🟠 **Orange box**: low-confidence prediction (also logged to warning file)
 
-#### 3. Warning Log — `MayBeWrong/may_be_wrong.txt`
+#### 3. Warning Log — `MayBeWrong/maybe_wrong.txt`
 
-If any detection has a confidence score below the threshold (`0.79` by default), a line is appended:
+If any detection has a confidence score below the threshold (`0.79` by default), one line per warning is written:
 
 ```
-Label "A" question 5;1.jpg;0.71
-Label 3 from left to right: "x";1.jpg;0.68
+[LOW CONF] Answer zone | File: t2.jpg | Question 5 | Predicted: "A" | Conf: 0.71
+[LOW CONF] Info zone   | File: t2.jpg | Column 4 (left→right) | Predicted: "x" | Conf: 0.68
 ```
 
-Each line contains: `<description>;<filename>;<confidence_score>`.
+Each record is a single line with `|`-separated fields: zone type, filename, location, predicted label, and confidence score.
 
 ---
 
